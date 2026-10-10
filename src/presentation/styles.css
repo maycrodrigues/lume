@@ -1,0 +1,91 @@
+@import 'tailwindcss';
+
+/* Tokens da marca LUME (Guia de Marca v1.0) */
+@theme {
+  --font-sans: 'Montserrat', ui-sans-serif, system-ui, sans-serif;
+
+  /* Paleta oficial */
+  --color-noite: #161e33;
+  --color-noite-800: #1d2640;
+  --color-noite-700: #29324f;
+  --color-lilas: #a794b3;
+  --color-lilas-soft: #efe8f3;
+  --color-perola: #ead9e6;
+  --color-perola-soft: #f4ecf2;
+  --color-offwhite: #f7f3f6;
+  --color-cinza: #c5bac7;
+
+  /* Texto (contraste AA sobre branco e off-white) */
+  --color-ink: #161e33;
+  --color-ink-soft: #4a4f63;
+  --color-ink-muted: #736c80;
+  --color-accent: #6e5c7e;
+  --color-line: #ebe4ea;
+  --color-line-strong: #dcd2db;
+
+  /* Estados — sempre acompanhados de rótulo/ícone */
+  --color-success: #34684d;
+  --color-success-soft: #e6f1ea;
+  --color-warning: #82571a;
+  --color-warning-soft: #f7eedd;
+  --color-danger: #a8434f;
+  --color-danger-soft: #f6e4e7;
+  --color-info: #3d4890;
+  --color-info-soft: #e5e8f5;
+  --color-neutral: #5f5b6b;
+  --color-neutral-soft: #eeedf0;
+
+  /* Séries de gráfico (validadas: croma, daltonismo e contraste ≥ 3:1) */
+  --color-chart-income: #4652a0;
+  --color-chart-expense: #be6e9e;
+
+  --shadow-card: 0 1px 2px rgb(22 30 51 / 0.04), 0 4px 16px -8px rgb(22 30 51 / 0.08);
+  --shadow-pop: 0 12px 40px -12px rgb(22 30 51 / 0.28);
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  body {
+    @apply bg-offwhite font-sans text-ink;
+  }
+  ::selection {
+    @apply bg-perola text-noite;
+  }
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-lilas;
+  }
+  dialog::backdrop {
+    background: rgb(22 30 51 / 0.45);
+    backdrop-filter: blur(2px);
+  }
+}
+
+@layer components {
+  /* Rótulo em caixa alta espaçada, como os títulos do guia de marca */
+  .eyebrow {
+    @apply text-[11px] font-medium tracking-[0.22em] text-accent uppercase;
+  }
+  .num {
+    font-variant-numeric: tabular-nums;
+  }
+  /* Horário fechado na agenda (fora do expediente ou bloqueado) */
+  .closed-hatch {
+    background-color: rgb(247 243 246 / 0.85);
+    background-image: repeating-linear-gradient(135deg, var(--color-line-strong) 0 1px, transparent 1px 9px);
+  }
+}
+
+@media print {
+  @page {
+    margin: 16mm;
+  }
+  body {
+    background: white;
+  }
+  .no-print {
+    display: none !important;
+  }
+}
