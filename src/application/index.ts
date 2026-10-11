@@ -1,5 +1,6 @@
 import { createActivityService, monotonicClock, withActivityLog } from './activityLog'
-import type { Clock, DataStore, IdGenerator, ImageProcessor } from './ports'
+import type { Clock, CredentialStore, DataStore, IdGenerator, ImageProcessor, PinHasher } from './ports'
+import { createAccessService } from './services/access'
 import { createAppointmentService } from './services/appointments'
 import { createAssessmentService } from './services/assessments'
 import { createBackupService } from './services/backup'
@@ -20,7 +21,14 @@ import { createSettingsService } from './services/settings'
  * Interface única da aplicação para a camada de apresentação.
  * Toda escrita de dados passa pelo registro de atividades automaticamente.
  */
-export function createServices(deps: { store: DataStore; clock: Clock; newId: IdGenerator; images: ImageProcessor }) {
+export function createServices({ credentials, pinHasher, ...deps }: {
+  store: DataStore
+  clock: Clock
+  newId: IdGenerator
+  images: ImageProcessor
+  credentials: CredentialStore
+  pinHasher: PinHasher
+}) {
   const activityClock = monotonicClock(deps.clock)
   const store = withActivityLog(deps.store, { clock: activityClock, newId: deps.newId })
   const d = { ...deps, store }
@@ -28,6 +36,7 @@ export function createServices(deps: { store: DataStore; clock: Clock; newId: Id
   const appointments = createAppointmentService(d)
   const finance = createFinanceService(d)
   return {
+    access: createAccessService(d, { credentials, pinHasher }, activity),
     patients: createPatientService(d),
     procedures: createProcedureService(d),
     appointments,
@@ -51,6 +60,7 @@ export function createServices(deps: { store: DataStore; clock: Clock; newId: Id
 
 export type Services = ReturnType<typeof createServices>
 
+export type { AccessStatus } from './services/access'
 export type { AppointmentView, ScheduleInput } from './services/appointments'
 export type { AssessmentInput, MeasureEvolution } from './services/assessments'
 export type { PhotoInput, PhotoUpdateInput } from './services/photos'

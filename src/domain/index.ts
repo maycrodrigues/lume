@@ -1,3 +1,4 @@
+export * from './access'
 export * from './activity'
 export * from './assessment'
 export * from './appointment'

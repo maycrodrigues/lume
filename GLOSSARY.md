@@ -131,8 +131,22 @@ O Lançamento de receita gerado a partir de um Atendimento, no valor total dos P
 **Saldo do mês**:
 Receitas pagas menos despesas pagas cujas datas caem no mês.
 
+## Acesso
+
+**PIN de acesso**:
+Senha de 4 números que a Profissional cria no primeiro acesso e digita sempre que abre o painel naquele navegador. Vale para o navegador, não para os dados da clínica.
+_Avoid_: senha, login, usuário
+
+**Painel bloqueado**:
+Estado em que nada do painel aparece até o PIN de acesso ser digitado. O painel começa bloqueado a cada acesso e pode ser bloqueado pela Profissional a qualquer momento.
+_Avoid_: logout, sair
+
+**Pausa de tentativas**:
+Espera obrigatória depois de cinco PINs errados seguidos; dobra a cada nova série de erros.
+_Avoid_: bloqueio de conta
+
 ## Registro de atividades
 
 **Registro de atividade**:
-Entrada imutável que descreve algo que aconteceu no painel: alteração de dados (com os campos antes/depois), navegação, evento do sistema ou erro.
+Entrada imutável que descreve algo que aconteceu no painel: alteração de dados (com os campos antes/depois), acesso, navegação, evento do sistema ou erro.
 _Avoid_: log de auditoria, histórico de alterações

@@ -1,7 +1,7 @@
 import type { Id, ISODateTime } from './shared'
 
 export type ActivityLevel = 'info' | 'warning' | 'error'
-export type ActivityCategory = 'data' | 'navigation' | 'system' | 'error'
+export type ActivityCategory = 'data' | 'access' | 'navigation' | 'system' | 'error'
 export type DataAction = 'create' | 'update' | 'delete'
 
 export type EntityName =

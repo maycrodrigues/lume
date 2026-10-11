@@ -18,6 +18,16 @@ Para explorar sem dados reais: Painel → "Carregar dados de demonstração" (s�
 
 Os dados de demonstração são gerados com Faker (pt-BR) em `src/application/demoData.ts` e respeitam as regras da agenda (horário de atendimento padrão, 15 min entre pacientes e bloqueios). O teste `demoData.test.ts` confere essas regras.
 
+## Acesso com PIN
+
+No primeiro acesso, o painel pede para criar um **PIN de 4 números**. Depois disso, ele pede o PIN sempre que é aberto (inclusive ao recarregar a página).
+
+- O botão **Bloquear painel**, na barra lateral, fecha o acesso na hora. Em Configurações → PIN de acesso dá para trocar o PIN.
+- Abas do painel abertas ao mesmo tempo compartilham o acesso (por exemplo, a impressão em outra aba). Bloquear vale para todas.
+- Cinco PINs errados seguidos causam uma pausa de 30 s, que dobra a cada nova série de erros.
+- **Esqueci o PIN**: a única saída é apagar os dados da clínica neste navegador e criar um PIN novo. Depois dá para restaurar um backup.
+- O PIN é uma trava de acesso, não criptografia, e fica guardado só como hash PBKDF2. Veja os detalhes e limites na [ADR 0005](docs/adr/0005-pin-de-acesso-local-por-navegador.md).
+
 ## Commits e validações
 
 As mensagens de commit seguem [Conventional Commits](https://www.conventionalcommits.org/pt-br/v1.0.0/), no formato `<tipo>(<escopo opcional>): <descrição em minúsculas>`.

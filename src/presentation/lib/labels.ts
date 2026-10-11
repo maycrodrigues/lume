@@ -64,6 +64,7 @@ export const IMAGE_CONSENT: Record<ImageConsent['scope'], { label: string; descr
 
 export const ACTIVITY_CATEGORIES: Record<ActivityCategory, string> = {
   data: 'Dados',
+  access: 'Acesso',
   navigation: 'Navegação',
   system: 'Sistema',
   error: 'Erros',

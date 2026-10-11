@@ -1,15 +1,17 @@
 import clsx from 'clsx'
-import { HardDrive, Menu, X } from 'lucide-react'
+import { HardDrive, LockKeyhole, Menu, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router'
 import { useServices } from '../app/services'
 import { LumeWordmark } from '../components/brand/Logo'
+import { useAccess } from '../features/access/AccessGate'
 import { useLiveQuery } from '../hooks/useLiveQuery'
 import { firstName } from '../lib/format'
 import { NAV_ITEMS, pageName } from './navigation'
 
 export function AppShell() {
   const services = useServices()
+  const { lock } = useAccess()
   const location = useLocation()
   // O menu móvel fica aberto só na navegação em que foi aberto: trocar de página o fecha.
   const [menuOpenAt, setMenuOpenAt] = useState<string>()
@@ -64,6 +66,14 @@ export function AppShell() {
           <HardDrive className="size-3" strokeWidth={1.5} />
           Dados salvos neste computador
         </p>
+        <button
+          type="button"
+          onClick={() => void lock()}
+          className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-white/[0.08] py-2 text-xs text-cinza transition-colors hover:bg-white/[0.06] hover:text-white"
+        >
+          <LockKeyhole className="size-3.5" strokeWidth={1.5} />
+          Bloquear painel
+        </button>
       </div>
     </div>
   )

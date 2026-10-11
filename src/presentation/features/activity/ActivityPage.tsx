@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { ChevronDown, Compass, Database, Download, Search, ServerCog, TriangleAlert } from 'lucide-react'
+import { ChevronDown, Compass, Database, Download, KeyRound, Search, ServerCog, TriangleAlert } from 'lucide-react'
 import { Fragment, useState } from 'react'
 import type { ActivityCategory, ActivityEntry, EntityName } from '@/domain'
 import { useServices } from '../../app/services'
@@ -15,7 +15,7 @@ import { downloadJson, formatDate, toDateInput } from '../../lib/format'
 import { ACTIVITY_CATEGORIES, ENTITY_NAMES } from '../../lib/labels'
 import { fieldLabel, formatChangeValue } from './formatChange'
 
-const ICONS: Record<ActivityCategory, typeof Database> = { data: Database, navigation: Compass, system: ServerCog, error: TriangleAlert }
+const ICONS: Record<ActivityCategory, typeof Database> = { data: Database, access: KeyRound, navigation: Compass, system: ServerCog, error: TriangleAlert }
 const PAGE = 200
 
 export function ActivityPage() {

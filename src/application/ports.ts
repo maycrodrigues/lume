@@ -175,3 +175,32 @@ export interface ProcessedImage {
 export interface ImageProcessor {
   process(file: Blob): Promise<ProcessedImage>
 }
+
+/** Derivação do PIN (nunca o PIN em si). Comparar só com `PinHasher.verify`. */
+export interface PinDigest {
+  hash: string
+  salt: string
+  iterations: number
+}
+
+/** Credencial de acesso deste navegador, guardada fora dos dados da clínica (não entra em backup). */
+export interface PinCredential extends PinDigest {
+  createdAt: ISODateTime
+  updatedAt: ISODateTime
+  /** Tentativas erradas seguidas desde o último acesso liberado. */
+  failedAttempts: number
+  /** Até quando novas tentativas estão em pausa. */
+  pausedUntil?: ISODateTime
+}
+
+export interface CredentialStore {
+  get(): Promise<PinCredential | undefined>
+  save(credential: PinCredential): Promise<void>
+  clear(): Promise<void>
+}
+
+/** Deriva e confere o PIN com uma função lenta e salgada (ex.: PBKDF2). */
+export interface PinHasher {
+  hash(pin: string): Promise<PinDigest>
+  verify(pin: string, digest: PinDigest): Promise<boolean>
+}

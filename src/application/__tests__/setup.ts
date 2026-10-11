@@ -1,7 +1,8 @@
+import { createMemoryCredentialStore } from '@/infrastructure/memory/memoryCredentialStore'
 import { createMemoryStore } from '@/infrastructure/memory/memoryStore'
 import { DomainError } from '@/domain'
 import { createServices } from '../index'
-import type { ImageProcessor } from '../ports'
+import type { ImageProcessor, PinHasher } from '../ports'
 
 /** Processador de imagem falso: aceita só `image/*` e devolve os próprios bytes. */
 export const fakeImages: ImageProcessor = {
@@ -12,6 +13,12 @@ export const fakeImages: ImageProcessor = {
   },
 }
 
+/** Hasher falso e instantâneo (o PBKDF2 real tem teste próprio na infraestrutura). */
+export const fakePinHasher: PinHasher = {
+  hash: async (pin) => ({ hash: `fake:${[...pin].reverse().join('')}`, salt: 'salt', iterations: 1 }),
+  verify: async (pin, digest) => digest.hash === `fake:${[...pin].reverse().join('')}`,
+}
+
 export const imageFile = (bytes = [1, 2, 3, 4]) => new Blob([new Uint8Array(bytes)], { type: 'image/jpeg' })
 
 /** Serviços sobre o adapter em memória, com relógio controlável e ids sequenciais. */
@@ -19,14 +26,18 @@ export function setup(now = '2026-10-10T09:00') {
   let current = new Date(now)
   let sequence = 0
   const store = createMemoryStore()
+  const credentials = createMemoryCredentialStore()
   const services = createServices({
     store,
     clock: { now: () => new Date(current) },
     newId: () => `id-${++sequence}`,
     images: fakeImages,
+    credentials,
+    pinHasher: fakePinHasher,
   })
   return {
     services,
+    credentials,
     setNow: (value: string) => {
       current = new Date(value)
     },

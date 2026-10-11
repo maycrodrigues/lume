@@ -41,6 +41,13 @@
 
   --shadow-card: 0 1px 2px rgb(22 30 51 / 0.04), 0 4px 16px -8px rgb(22 30 51 / 0.08);
   --shadow-pop: 0 12px 40px -12px rgb(22 30 51 / 0.28);
+
+  --animate-shake: shake 0.4s ease-in-out;
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-8px); }
+    40%, 80% { transform: translateX(8px); }
+  }
 }
 
 @layer base {

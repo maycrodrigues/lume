@@ -6,6 +6,8 @@ import '@/presentation/styles.css'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { createServices } from '@/application'
+import { createLocalCredentialStore } from '@/infrastructure/access/localCredentialStore'
+import { createWebCryptoPinHasher } from '@/infrastructure/access/webCryptoPinHasher'
 import { createDexieStore } from '@/infrastructure/dexie/dexieStore'
 import { createCanvasImageProcessor } from '@/infrastructure/images/canvasImageProcessor'
 import { App } from '@/presentation/app/App'
@@ -16,6 +18,8 @@ const services = createServices({
   clock: { now: () => new Date() },
   newId: () => crypto.randomUUID(),
   images: createCanvasImageProcessor(),
+  credentials: createLocalCredentialStore(),
+  pinHasher: createWebCryptoPinHasher(),
 })
 
 window.addEventListener('error', (event) => {

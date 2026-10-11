@@ -13,6 +13,7 @@ import { PageHeader } from '../../components/ui/PageHeader'
 import { useAction, useSubmit } from '../../hooks/useAction'
 import { useLiveQuery } from '../../hooks/useLiveQuery'
 import { downloadJson, timeAgo, toDateInput } from '../../lib/format'
+import { ChangePinCard } from '../access/ChangePinCard'
 import { WorkingHoursCard } from './WorkingHoursCard'
 
 const COUNT_LABELS: Record<string, string> = {
@@ -128,6 +129,7 @@ export function SettingsPage() {
         </div>
 
         <div className="space-y-6">
+          <ChangePinCard />
           <Card>
             <CardHeader eyebrow="Segurança dos dados" title="Backup" />
             <div className="space-y-4 px-5 pb-5">
