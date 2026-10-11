@@ -47,7 +47,7 @@ export function IssuedCouponsTable({ coupons, showPatient = true }: { coupons: I
                 <td className="num px-5 py-3 font-medium tracking-wider whitespace-nowrap text-noite">{c.code}</td>
                 {showPatient && (
                   <td className="px-5 py-3">
-                    <Link to={`/pacientes/${c.patientId}`} className="text-ink hover:text-accent">{c.patientName}</Link>
+                    <Link to={`/admin/pacientes/${c.patientId}`} className="text-ink hover:text-accent">{c.patientName}</Link>
                   </td>
                 )}
                 <td className="px-5 py-3 text-ink-soft">

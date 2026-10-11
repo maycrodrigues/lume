@@ -63,7 +63,7 @@ export function PatientsPage() {
               </thead>
               <tbody className={loading ? 'opacity-60 transition-opacity' : undefined}>
                 {patients?.map((p) => (
-                  <tr key={p.id} onClick={() => navigate(`/pacientes/${p.id}`)} className="cursor-pointer border-t border-line transition-colors hover:bg-offwhite/70">
+                  <tr key={p.id} onClick={() => navigate(`/admin/pacientes/${p.id}`)} className="cursor-pointer border-t border-line transition-colors hover:bg-offwhite/70">
                     <td className="px-5 py-3">
                       <div className="flex items-center gap-3">
                         <Avatar name={p.name} size="sm" />
@@ -91,7 +91,7 @@ export function PatientsPage() {
         )}
       </Card>
 
-      <PatientFormModal open={creating} onClose={() => setCreating(false)} onSaved={(p) => navigate(`/pacientes/${p.id}`)} />
+      <PatientFormModal open={creating} onClose={() => setCreating(false)} onSaved={(p) => navigate(`/admin/pacientes/${p.id}`)} />
     </>
   )
 }

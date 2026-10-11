@@ -118,7 +118,7 @@ function AssessmentCard({ assessment, record, onEdit }: { assessment: Assessment
           {consultation && <Badge tone="lilac" dot={false} className="mt-1.5">Atendimento de {consultationLabel(consultation)}</Badge>}
         </div>
         <div className="-mr-2 flex">
-          <Link to={`/fichas/${assessment.id}/imprimir`} target="_blank" rel="noreferrer" title="Imprimir" aria-label="Imprimir ficha" className="inline-flex size-8 items-center justify-center rounded-full text-ink-muted hover:bg-perola-soft hover:text-ink">
+          <Link to={`/admin/fichas/${assessment.id}/imprimir`} target="_blank" rel="noreferrer" title="Imprimir" aria-label="Imprimir ficha" className="inline-flex size-8 items-center justify-center rounded-full text-ink-muted hover:bg-perola-soft hover:text-ink">
             <Printer className="size-4" strokeWidth={1.5} />
           </Link>
           <IconButton label="Editar ficha" onClick={onEdit}>

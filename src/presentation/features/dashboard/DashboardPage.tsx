@@ -69,10 +69,10 @@ export function DashboardPage() {
             </div>
             <ol className="space-y-2.5 text-sm">
               {[
-                { to: '/configuracoes', label: 'Preencha os dados da clínica e da profissional' },
-                { to: '/procedimentos', label: 'Cadastre os procedimentos com valor e duração' },
-                { to: '/pacientes', label: 'Cadastre as pacientes e a anamnese' },
-                { to: '/agenda', label: 'Agende e registre os atendimentos' },
+                { to: '/admin/configuracoes', label: 'Preencha os dados da clínica e da profissional' },
+                { to: '/admin/procedimentos', label: 'Cadastre os procedimentos com valor e duração' },
+                { to: '/admin/pacientes', label: 'Cadastre as pacientes e a anamnese' },
+                { to: '/admin/agenda', label: 'Agende e registre os atendimentos' },
               ].map((step, i) => (
                 <li key={step.to}>
                   <Link to={step.to} className="flex items-center gap-3 rounded-xl border border-line bg-white px-4 py-3 transition-colors hover:border-cinza">
@@ -102,7 +102,7 @@ export function DashboardPage() {
 
       <div className="mb-6 grid gap-6 xl:grid-cols-3">
         <Card className="min-w-0 xl:col-span-2">
-          <CardHeader eyebrow="Hoje" title="Agenda do dia" action={<ButtonLink to="/agenda" variant="ghost" size="sm">Abrir agenda</ButtonLink>} />
+          <CardHeader eyebrow="Hoje" title="Agenda do dia" action={<ButtonLink to="/admin/agenda" variant="ghost" size="sm">Abrir agenda</ButtonLink>} />
           {overview.today.length === 0 ? (
             <EmptyState icon={<CalendarCheck className="size-5" strokeWidth={1.5} />} title="Nenhum agendamento para hoje" action={<Button size="sm" variant="soft" onClick={() => setScheduling(true)}>Agendar</Button>} />
           ) : (
@@ -114,7 +114,7 @@ export function DashboardPage() {
                     <p className="text-xs text-ink-muted">até {formatTime(a.end)}</p>
                   </div>
                   <div className="min-w-0 flex-1">
-                    <Link to={`/pacientes/${a.patientId}`} className="truncate text-sm font-medium text-ink hover:text-accent">{a.patientName}</Link>
+                    <Link to={`/admin/pacientes/${a.patientId}`} className="truncate text-sm font-medium text-ink hover:text-accent">{a.patientName}</Link>
                     <p className="truncate text-xs text-ink-muted">{a.items.map((i) => i.name).join(' · ')}</p>
                   </div>
                   <Badge tone={APPOINTMENT_STATUS[a.status].tone}>{APPOINTMENT_STATUS[a.status].label}</Badge>
@@ -135,7 +135,7 @@ export function DashboardPage() {
             <ul className="space-y-1 px-3 pb-3">
               {overview.upcoming.map((a) => (
                 <li key={a.id}>
-                  <Link to={`/pacientes/${a.patientId}`} className="flex items-center gap-3 rounded-xl px-2 py-2.5 hover:bg-offwhite">
+                  <Link to={`/admin/pacientes/${a.patientId}`} className="flex items-center gap-3 rounded-xl px-2 py-2.5 hover:bg-offwhite">
                     <div className="flex size-12 shrink-0 flex-col items-center justify-center rounded-xl bg-perola-soft">
                       <span className="num text-[15px] leading-none text-noite">{new Date(a.start).getDate()}</span>
                       <span className="mt-1 text-[9px] leading-none font-medium tracking-wider whitespace-nowrap text-accent uppercase">{formatDate(a.start, 'EEEEEE')}</span>
@@ -156,7 +156,7 @@ export function DashboardPage() {
 
       <div className="mb-6 grid gap-6 xl:grid-cols-3">
         <Card className="min-w-0 xl:col-span-2">
-          <CardHeader eyebrow="Últimos 6 meses" title="Receitas e despesas pagas" action={<ButtonLink to="/financeiro" variant="ghost" size="sm">Financeiro</ButtonLink>} />
+          <CardHeader eyebrow="Últimos 6 meses" title="Receitas e despesas pagas" action={<ButtonLink to="/admin/financeiro" variant="ghost" size="sm">Financeiro</ButtonLink>} />
           <div className="px-5 pb-5">
             <RevenueChart data={overview.revenue} />
           </div>
@@ -194,7 +194,7 @@ export function DashboardPage() {
               <ul className="space-y-1 px-3 pb-3">
                 {overview.birthdays.map(({ patient, day }) => (
                   <li key={patient.id}>
-                    <Link to={`/pacientes/${patient.id}`} className={clsx('flex items-center gap-3 rounded-xl px-2 py-2 hover:bg-offwhite', day === now.getDate() && 'bg-perola-soft')}>
+                    <Link to={`/admin/pacientes/${patient.id}`} className={clsx('flex items-center gap-3 rounded-xl px-2 py-2 hover:bg-offwhite', day === now.getDate() && 'bg-perola-soft')}>
                       <Cake className="size-4 text-accent" strokeWidth={1.5} />
                       <span className="flex-1 truncate text-sm text-ink">{patient.name}</span>
                       <span className="num text-xs text-ink-muted">{day === now.getDate() ? 'Hoje!' : `dia ${day}`}</span>
@@ -208,7 +208,7 @@ export function DashboardPage() {
       </div>
 
       <Card>
-        <CardHeader eyebrow="Registros" title="Atividade recente" action={<ButtonLink to="/registros" variant="ghost" size="sm">Ver todos</ButtonLink>} />
+        <CardHeader eyebrow="Registros" title="Atividade recente" action={<ButtonLink to="/admin/registros" variant="ghost" size="sm">Ver todos</ButtonLink>} />
         {activity.length === 0 ? (
           <p className="px-5 pb-5 text-sm text-ink-muted">As alterações feitas no painel aparecem aqui.</p>
         ) : (

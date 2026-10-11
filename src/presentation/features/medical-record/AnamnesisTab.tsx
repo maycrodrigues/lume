@@ -31,7 +31,7 @@ export function AnamnesisTab({ patient }: { patient: Patient }) {
           {patient.anamnesisUpdatedAt ? `Última atualização em ${formatDateTime(patient.anamnesisUpdatedAt)}` : 'Anamnese ainda não preenchida.'}
         </p>
         <Link
-          to={`/pacientes/${patient.id}/anamnese/imprimir`}
+          to={`/admin/pacientes/${patient.id}/anamnese/imprimir`}
           target="_blank"
           rel="noreferrer"
           className="inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-xs font-medium text-accent hover:bg-perola-soft hover:text-noite"

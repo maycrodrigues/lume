@@ -5,45 +5,13 @@ import '@fontsource/montserrat/600.css'
 import '@/presentation/styles.css'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { createServices } from '@/application'
-import { createLocalCredentialStore } from '@/infrastructure/access/localCredentialStore'
-import { createWebCryptoPinHasher } from '@/infrastructure/access/webCryptoPinHasher'
-import { createDexieStore } from '@/infrastructure/dexie/dexieStore'
-import { createCanvasImageProcessor } from '@/infrastructure/images/canvasImageProcessor'
 import { App } from '@/presentation/app/App'
 
-/* Raiz de composição: o único lugar que conhece os adapters concretos. */
-const services = createServices({
-  store: createDexieStore('lume'),
-  clock: { now: () => new Date() },
-  newId: () => crypto.randomUUID(),
-  images: createCanvasImageProcessor(),
-  credentials: createLocalCredentialStore(),
-  pinHasher: createWebCryptoPinHasher(),
-})
-
-window.addEventListener('error', (event) => {
-  void services.activity.recordError(event.error ?? event.message, { source: 'window.onerror', path: location.pathname })
-})
-window.addEventListener('unhandledrejection', (event) => {
-  void services.activity.recordError(event.reason, { source: 'unhandledrejection', path: location.pathname })
-})
-
-// Pede ao navegador para não descartar o IndexedDB sob pressão de espaço.
-const persist = navigator.storage?.persist ? navigator.storage.persist() : Promise.resolve(false)
-void persist
-  .catch(() => false)
-  .then((persisted) =>
-    services.activity.record({
-      category: 'system',
-      action: 'app.start',
-      message: 'Painel iniciado',
-      context: { persistentStorage: persisted, userAgent: navigator.userAgent },
-    }),
-  )
+/* O painel (serviços, IndexedDB, adapters) é composto em ./composition e só carrega em /admin. */
+const loadServices = () => import('./composition').then((m) => m.services)
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App services={services} />
+    <App loadServices={loadServices} />
   </StrictMode>,
 )

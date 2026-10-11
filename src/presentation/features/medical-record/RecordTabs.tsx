@@ -122,7 +122,7 @@ export function ConsultationsTab({ record, onEdit, onNew, onOpenPhotos }: { reco
                     <FileText className="size-4 text-accent" strokeWidth={1.5} />
                     Prescrição com {prescription.items.length} {prescription.items.length === 1 ? 'item' : 'itens'}
                   </span>
-                  <Link to={`/prescricoes/${prescription.id}/imprimir`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-xs font-medium text-accent hover:text-noite">
+                  <Link to={`/admin/prescricoes/${prescription.id}/imprimir`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-xs font-medium text-accent hover:text-noite">
                     <Printer className="size-3.5" strokeWidth={1.5} />
                     Imprimir
                   </Link>
@@ -214,7 +214,7 @@ export function PrescriptionsTab({ record, onEdit, onNew }: { record: MedicalRec
               <p className="text-sm font-medium text-ink">{formatDate(p.date, "d 'de' MMMM 'de' yyyy")}</p>
             </div>
             <div className="-mt-1 -mr-2 flex">
-              <Link to={`/prescricoes/${p.id}/imprimir`} target="_blank" rel="noreferrer" title="Imprimir" aria-label="Imprimir" className="inline-flex size-8 items-center justify-center rounded-full text-ink-muted hover:bg-perola-soft hover:text-ink">
+              <Link to={`/admin/prescricoes/${p.id}/imprimir`} target="_blank" rel="noreferrer" title="Imprimir" aria-label="Imprimir" className="inline-flex size-8 items-center justify-center rounded-full text-ink-muted hover:bg-perola-soft hover:text-ink">
                 <Printer className="size-4" strokeWidth={1.5} />
               </Link>
               <IconButton label="Editar prescrição" onClick={() => onEdit(p)}>

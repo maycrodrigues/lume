@@ -1,4 +1,6 @@
-# LUME · Painel de gestão
+# LUME · Estética & Cuidado Integrado
+
+Site da clínica (landing page em `/`) e painel de gestão (em `/admin`).
 
 Painel da clínica de estética integrativa LUME: pacientes, prontuário (anamnese, fichas de avaliação, fotos de acompanhamento, atendimentos, procedimentos realizados e prescrições), agenda, catálogo de procedimentos, pacotes com simulador de desconto, cupons de desconto, financeiro e registro de atividades.
 
@@ -8,15 +10,26 @@ Uso local por uma única profissional, sem login. Os dados ficam no IndexedDB do
 
 ```bash
 npm install
-npm run dev        # http://localhost:5173
+npm run dev        # landing em http://localhost:5173 · painel em http://localhost:5173/admin
 npm test           # testes de aplicação + contrato dos adapters
 npm run typecheck
 npm run build
 ```
 
-Para explorar sem dados reais: Painel → "Carregar dados de demonstração" (só aparece com o painel vazio). Para sair do modo demo: Configurações → Apagar tudo.
+Para explorar sem dados reais: `/admin` → Painel → "Carregar dados de demonstração" (só aparece com o painel vazio). Para sair do modo demo: Configurações → Apagar tudo.
 
 Os dados de demonstração são gerados com Faker (pt-BR) em `src/application/demoData.ts` e respeitam as regras da agenda (horário de atendimento padrão, 15 min entre pacientes e bloqueios). O teste `demoData.test.ts` confere essas regras.
+
+## Landing page e painel
+
+| Rota | O que é |
+|---|---|
+| `/` | Landing page pública da clínica: abordagem, tratamentos, como funciona e contato. |
+| `/admin/...` | Todo o painel (agenda, pacientes, financeiro…), sempre atrás do PIN de acesso. O rodapé da landing tem o link "Área da profissional". |
+
+- **Dados de contato da landing:** WhatsApp, Instagram, e-mail, endereço e horários ficam em `src/presentation/features/landing/clinic.ts`. Campos vazios não aparecem. Com o WhatsApp preenchido, os botões "Agendar avaliação" abrem a conversa já com uma mensagem pronta. Sem ele, os botões levam à seção de contato. A página pública não lê as Configurações do painel, porque esses dados ficam só no navegador da profissional.
+- **Carregamento separado:** o painel é carregado só ao entrar em `/admin`. Isso vale para os serviços, o IndexedDB e cada tela. Quem visita a landing não baixa o sistema e não ganha um banco local no navegador.
+- **Endereços antigos** do painel, como `/agenda`, redirecionam para `/admin/agenda`. Qualquer outro endereço desconhecido volta para a landing.
 
 ## Acesso com PIN
 
@@ -73,12 +86,14 @@ src/
 │   ├── activityLog.ts Decorator que registra toda escrita de dados
 │   └── services/      Um módulo por área: patients, appointments, consultations…
 ├── infrastructure/  Adapters do DataStore: IndexedDB (Dexie) e memória (testes)
-├── presentation/    React + Tailwind: design system da marca, páginas por feature
-└── main/main.tsx    Raiz de composição — o único lugar que conhece os adapters concretos
+├── presentation/    React + Tailwind: design system da marca, landing page e páginas do painel por feature
+└── main/
+    ├── main.tsx         Monta o roteador (landing + /admin)
+    └── composition.ts   Raiz de composição do painel — o único lugar que conhece os adapters concretos (carregada só em /admin)
 ```
 
 - A UI conversa só com `createServices()` (`src/application/index.ts`). Cada serviço valida a entrada (Zod), aplica as regras e grava dentro de uma transação.
-- **Trocar o banco**: escreva um novo adapter que implemente `DataStore` e passe na suíte `src/infrastructure/dataStore.contract.test.ts`; depois troque uma linha em `main.tsx`. Ver [ADR 0001](docs/adr/0001-indexeddb-atras-do-port-datastore.md).
+- **Trocar o banco**: escreva um novo adapter que implemente `DataStore` e passe na suíte `src/infrastructure/dataStore.contract.test.ts`; depois troque uma linha em `src/main/composition.ts`. Ver [ADR 0001](docs/adr/0001-indexeddb-atras-do-port-datastore.md).
 - **Registro de atividades**: toda criação/alteração/exclusão é registrada automaticamente com campos antes → depois (e cópia completa na exclusão), na mesma transação. Navegação, erros (inclusive não tratados), backup e impressão também são registrados. Ver [ADR 0002](docs/adr/0002-registro-de-atividades-no-seam-de-persistencia.md).
 - **Fichas** (anamnese, avaliação facial/corporal/capilar, harmonização) são modelos declarativos em `src/domain/questionnaire/`. Para incluir uma pergunta, acrescente um item no modelo — formulário, impressão, alertas e registros se adaptam. Ver [ADR 0003](docs/adr/0003-fichas-como-modelos-declarativos.md).
 - **Fotos** são reduzidas no navegador (máx. 2048 px, JPEG) com miniatura de 480 px e gravadas no IndexedDB como binário. O backup inclui as fotos (em base64).

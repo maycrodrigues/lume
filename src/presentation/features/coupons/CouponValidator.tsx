@@ -69,7 +69,7 @@ export function CouponValidator() {
               <p className="num text-base font-medium tracking-wider text-noite">{result.code}</p>
               <p className="text-sm text-ink-soft">
                 {result.name} · <strong className="font-medium text-ink">{result.discountPercent}% de desconto</strong> ·{' '}
-                <Link to={`/pacientes/${result.patientId}`} className="text-accent hover:text-noite">{result.patientName}</Link>
+                <Link to={`/admin/pacientes/${result.patientId}`} className="text-accent hover:text-noite">{result.patientName}</Link>
               </p>
             </div>
             <Badge tone={COUPON_STATUS[result.status].tone}>{COUPON_STATUS[result.status].label}</Badge>

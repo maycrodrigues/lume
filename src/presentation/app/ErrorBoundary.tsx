@@ -30,7 +30,7 @@ export class ErrorBoundary extends Component<Props, { error?: Error }> {
           <p className="eyebrow mb-3">Algo saiu do lugar</p>
           <h1 className="text-xl font-light text-noite">Não foi possível exibir esta tela</h1>
           <p className="mt-2 text-sm text-ink-muted">Seus dados estão seguros. O erro foi gravado em Registros para análise.</p>
-          <button type="button" onClick={() => location.assign(import.meta.env.BASE_URL)} className="mt-6 h-10 rounded-full bg-noite px-5 text-sm font-medium text-white">
+          <button type="button" onClick={() => location.assign(`${import.meta.env.BASE_URL}admin`)} className="mt-6 h-10 rounded-full bg-noite px-5 text-sm font-medium text-white">
             Voltar ao painel
           </button>
         </div>

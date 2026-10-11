@@ -41,7 +41,7 @@ export function AppShell() {
           <NavLink
             key={to}
             to={to}
-            end={to === '/'}
+            end={to === '/admin'}
             className={({ isActive }) =>
               clsx(
                 'group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-[13px] transition-colors',

@@ -74,7 +74,7 @@ export function SchedulePage() {
         description="Clique em um horário livre para agendar. Áreas hachuradas estão fora do horário de atendimento ou bloqueadas."
         actions={
           <>
-            <ButtonLink to="/configuracoes" variant="ghost" icon={<Clock className="size-4" strokeWidth={1.5} />}>Horário de atendimento</ButtonLink>
+            <ButtonLink to="/admin/configuracoes" variant="ghost" icon={<Clock className="size-4" strokeWidth={1.5} />}>Horário de atendimento</ButtonLink>
             <Button variant="secondary" icon={<CalendarOff className="size-4" strokeWidth={1.5} />} onClick={() => setBlocking(true)}>Bloquear agenda</Button>
             <Button icon={<Plus className="size-4" />} onClick={() => setCreating({})}>Novo agendamento</Button>
           </>

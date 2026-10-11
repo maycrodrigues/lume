@@ -62,7 +62,7 @@ export function AppointmentDetailsModal({ appointmentId, onClose, onReschedule, 
           <div className="flex items-center gap-3">
             <Avatar name={view.patientName} />
             <div className="min-w-0 flex-1">
-              <Link to={`/pacientes/${view.patientId}`} className="inline-flex items-center gap-1 font-medium text-ink hover:text-accent">
+              <Link to={`/admin/pacientes/${view.patientId}`} className="inline-flex items-center gap-1 font-medium text-ink hover:text-accent">
                 {view.patientName}
                 <ExternalLink className="size-3.5" strokeWidth={1.5} />
               </Link>
@@ -98,7 +98,7 @@ export function AppointmentDetailsModal({ appointmentId, onClose, onReschedule, 
               </Button>
             )}
             {view.status === 'completed' && (
-              <Link to={`/pacientes/${view.patientId}`} className="inline-flex h-10 items-center gap-2 rounded-full bg-noite px-4 text-sm font-medium text-white">
+              <Link to={`/admin/pacientes/${view.patientId}`} className="inline-flex h-10 items-center gap-2 rounded-full bg-noite px-4 text-sm font-medium text-white">
                 Ver no prontuário
               </Link>
             )}

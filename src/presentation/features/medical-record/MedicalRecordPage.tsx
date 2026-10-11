@@ -61,7 +61,7 @@ export function MedicalRecordPage() {
   const { data: record, error } = useLiveQuery(() => services.medicalRecords.get(patientId), [patientId])
 
   if (error) {
-    return <EmptyState title="Paciente não encontrada" description="O cadastro pode ter sido excluído." action={<Link to="/pacientes" className="text-sm font-medium text-accent">Voltar para pacientes</Link>} />
+    return <EmptyState title="Paciente não encontrada" description="O cadastro pode ter sido excluído." action={<Link to="/admin/pacientes" className="text-sm font-medium text-accent">Voltar para pacientes</Link>} />
   }
   if (!record || record.patient.id !== patientId) return null
   const { patient, summary } = record
@@ -74,12 +74,12 @@ export function MedicalRecordPage() {
 
   const remove = async () => {
     const ok = await confirm({ title: 'Excluir paciente', message: `Excluir definitivamente o cadastro de ${patient.name}? Só é possível quando não há histórico clínico ou financeiro. Uma cópia fica em Registros.`, confirmLabel: 'Excluir' })
-    if (ok && (await action('patient.remove', () => services.patients.remove(patient.id), { success: 'Cadastro excluído.' })).ok) navigate('/pacientes')
+    if (ok && (await action('patient.remove', () => services.patients.remove(patient.id), { success: 'Cadastro excluído.' })).ok) navigate('/admin/pacientes')
   }
 
   return (
     <>
-      <Link to="/pacientes" className="mb-4 inline-flex items-center gap-1.5 text-xs font-medium text-ink-muted hover:text-ink">
+      <Link to="/admin/pacientes" className="mb-4 inline-flex items-center gap-1.5 text-xs font-medium text-ink-muted hover:text-ink">
         <ArrowLeft className="size-3.5" />
         Pacientes
       </Link>
