@@ -2,7 +2,8 @@ import { createMemoryCredentialStore } from '@/infrastructure/memory/memoryCrede
 import { createMemoryStore } from '@/infrastructure/memory/memoryStore'
 import { DomainError } from '@/domain'
 import { createServices } from '../index'
-import type { ImageProcessor, PinHasher } from '../ports'
+import type { ImageProcessor, PinHasher, SitePublisher, SiteTokenStore } from '../ports'
+import type { SiteProfile } from '@/domain'
 
 /** Processador de imagem falso: aceita só `image/*` e devolve os próprios bytes. */
 export const fakeImages: ImageProcessor = {
@@ -19,6 +20,35 @@ export const fakePinHasher: PinHasher = {
   verify: async (pin, digest) => digest.hash === `fake:${[...pin].reverse().join('')}`,
 }
 
+/** Publicador falso: guarda o que foi publicado; aceita só o token "token-valido". */
+export function fakeSitePublisher(): SitePublisher & { published: Array<{ profile: SiteProfile; token: string }> } {
+  const published: Array<{ profile: SiteProfile; token: string }> = []
+  const check = (token: string) => {
+    if (token !== 'token-valido') throw new DomainError('Token inválido ou expirado.', 'invalid_token')
+  }
+  return {
+    published,
+    verify: async (token) => check(token),
+    publish: async (profile, token) => {
+      check(token)
+      published.push({ profile, token })
+    },
+  }
+}
+
+export function memoryTokenStore(): SiteTokenStore {
+  let token: string | undefined
+  return {
+    get: async () => token,
+    save: async (value) => {
+      token = value
+    },
+    clear: async () => {
+      token = undefined
+    },
+  }
+}
+
 export const imageFile = (bytes = [1, 2, 3, 4]) => new Blob([new Uint8Array(bytes)], { type: 'image/jpeg' })
 
 /** Serviços sobre o adapter em memória, com relógio controlável e ids sequenciais. */
@@ -27,6 +57,7 @@ export function setup(now = '2026-10-10T09:00') {
   let sequence = 0
   const store = createMemoryStore()
   const credentials = createMemoryCredentialStore()
+  const sitePublisher = fakeSitePublisher()
   const services = createServices({
     store,
     clock: { now: () => new Date(current) },
@@ -34,10 +65,13 @@ export function setup(now = '2026-10-10T09:00') {
     images: fakeImages,
     credentials,
     pinHasher: fakePinHasher,
+    sitePublisher,
+    siteToken: memoryTokenStore(),
   })
   return {
     services,
     credentials,
+    sitePublisher,
     setNow: (value: string) => {
       current = new Date(value)
     },

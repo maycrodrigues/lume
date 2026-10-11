@@ -1,9 +1,10 @@
-import { ArrowRight, AtSign, CalendarHeart, Check, Clock, Droplets, Flower2, HeartHandshake, Leaf, Mail, MapPin, MessageCircle, Sparkles, Syringe, type LucideIcon } from 'lucide-react'
-import type { ReactNode } from 'react'
+import { ArrowRight, AtSign, BadgeCheck, CalendarHeart, Check, Clock, Droplets, Flower2, HeartHandshake, Leaf, Mail, MapPin, MessageCircle, Sparkles, Syringe, type LucideIcon } from 'lucide-react'
+import { use, type ReactNode } from 'react'
 import { Link } from 'react-router'
 import { LumeIcon, LumeWordmark } from '../../components/brand/Logo'
 import { cn } from '../../lib/cn'
-import { bookingLink, CLINIC } from './clinic'
+import { Photo, PHOTOS, type LandingPhoto } from './photos'
+import { bookingLink, SiteContext, useSiteInfo, whatsappLink, type SiteInfo } from './site'
 
 const NAV = [
   { href: '#abordagem', label: 'Abordagem' },
@@ -18,11 +19,11 @@ const PILLARS: Array<{ icon: LucideIcon; title: string; text: string }> = [
   { icon: HeartHandshake, title: 'Acompanhamento próximo', text: 'Cada sessão é registrada, com fotos de evolução, e o cuidado é ajustado ao longo do caminho.' },
 ]
 
-const TREATMENTS: Array<{ icon: LucideIcon; title: string; text: string; items: string[] }> = [
-  { icon: Flower2, title: 'Facial', text: 'Pele limpa, uniforme e com viço.', items: ['Limpeza de pele profunda', 'Peeling de diamante', 'Microagulhamento', 'Radiofrequência facial'] },
-  { icon: Droplets, title: 'Corporal', text: 'Leveza, menos inchaço e mais disposição.', items: ['Drenagem linfática', 'Massagem relaxante', 'Pacotes de sessões'] },
-  { icon: Syringe, title: 'Injetáveis', text: 'Resultados naturais, com segurança.', items: ['Toxina botulínica', 'Bioestimulador de colágeno'] },
-  { icon: Leaf, title: 'Terapias integrativas', text: 'Equilíbrio emocional, sono e bem-estar.', items: ['Auriculoterapia', 'Óleos essenciais'] },
+const TREATMENTS: Array<{ icon: LucideIcon; title: string; text: string; items: string[]; photo: LandingPhoto }> = [
+  { icon: Flower2, title: 'Facial', text: 'Pele limpa, uniforme e com viço.', items: ['Limpeza de pele profunda', 'Peeling de diamante', 'Microagulhamento', 'Radiofrequência facial'], photo: PHOTOS.facial },
+  { icon: Droplets, title: 'Corporal', text: 'Leveza, menos inchaço e mais disposição.', items: ['Drenagem linfática', 'Massagem relaxante', 'Pacotes de sessões'], photo: PHOTOS.body },
+  { icon: Syringe, title: 'Injetáveis', text: 'Resultados naturais, com segurança.', items: ['Toxina botulínica', 'Bioestimulador de colágeno'], photo: PHOTOS.injectables },
+  { icon: Leaf, title: 'Terapias integrativas', text: 'Equilíbrio emocional, sono e bem-estar.', items: ['Auriculoterapia', 'Óleos essenciais'], photo: PHOTOS.integrative },
 ]
 
 const STEPS = [
@@ -33,26 +34,70 @@ const STEPS = [
 
 /** Página pública da clínica (rota principal). O painel fica em /admin. */
 export function LandingPage() {
+  const site = useSiteInfo()
   return (
-    <div className="min-h-dvh bg-offwhite text-ink">
-      <Header />
-      <main>
-        <Hero />
-        <Approach />
-        <Treatments />
-        <HowItWorks />
-        <Contact />
-      </main>
-      <Footer />
-    </div>
+    <SiteContext value={site}>
+      <div className="min-h-dvh bg-offwhite text-ink">
+        <Header />
+        <main>
+          <Hero />
+          <Approach />
+          <Treatments />
+          <HowItWorks />
+          <Contact />
+        </main>
+        <Footer />
+        <WhatsAppButton />
+      </div>
+    </SiteContext>
+  )
+}
+
+const initials = (name: string) =>
+  name
+    .split(/\s+/)
+    .filter((part) => part.length > 2 || /^[A-ZÀ-Ú]/.test(part))
+    .map((part) => part[0])
+    .filter((_, i, all) => i === 0 || i === all.length - 1)
+    .join('')
+    .toUpperCase()
+
+/** Canais de contato publicados (só os preenchidos). */
+function contactChannels(site: SiteInfo) {
+  return [
+    site.whatsapp && { icon: MessageCircle, label: 'WhatsApp', value: site.phone ?? 'Conversar agora', href: whatsappLink(site.whatsapp) },
+    site.email && { icon: Mail, label: 'E-mail', value: site.email, href: `mailto:${site.email}` },
+    site.instagram && { icon: AtSign, label: 'Instagram', value: `@${site.instagram}`, href: `https://instagram.com/${site.instagram}` },
+    site.address && { icon: MapPin, label: 'Endereço', value: site.address, href: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(site.address)}` },
+  ].filter(Boolean) as Array<{ icon: LucideIcon; label: string; value: string; href: string }>
+}
+
+/** Botão discreto e fixo de WhatsApp: só o ícone; o texto aparece ao passar o mouse ou focar. */
+function WhatsAppButton() {
+  const site = use(SiteContext)
+  if (!site.whatsapp) return null
+  return (
+    <a
+      href={whatsappLink(site.whatsapp)}
+      target="_blank"
+      rel="noreferrer"
+      aria-label="Agendar avaliação pelo WhatsApp"
+      className="group fixed right-4 bottom-4 z-40 flex h-12 items-center rounded-full border border-white/10 bg-noite/90 px-3.5 text-perola shadow-pop backdrop-blur transition-colors hover:bg-noite sm:right-6 sm:bottom-6"
+    >
+      <MessageCircle className="size-5 shrink-0" strokeWidth={1.5} />
+      <span className="max-w-0 overflow-hidden text-[13px] font-medium whitespace-nowrap transition-all duration-300 group-hover:ml-2 group-hover:max-w-48 group-focus-visible:ml-2 group-focus-visible:max-w-48">
+        Agendar pelo WhatsApp
+      </span>
+    </a>
   )
 }
 
 function BookingButton({ children = 'Agendar avaliação', tone = 'dark', className }: { children?: ReactNode; tone?: 'dark' | 'light'; className?: string }) {
+  const link = bookingLink(use(SiteContext))
   return (
     <a
-      href={bookingLink.href}
-      {...(bookingLink.external ? { target: '_blank', rel: 'noreferrer' } : {})}
+      href={link.href}
+      {...(link.external ? { target: '_blank', rel: 'noreferrer' } : {})}
       className={cn(
         'inline-flex h-12 items-center justify-center gap-2 rounded-full px-7 text-sm font-medium transition-colors',
         tone === 'dark' ? 'bg-noite text-white hover:bg-noite-700' : 'bg-perola text-noite hover:bg-white',
@@ -136,15 +181,19 @@ function Hero() {
   )
 }
 
-/** Arco com o ícone da marca, a "pérola" e o cartão da primeira consulta. */
+/** Foto num arco (forma da marca), a "pérola" e o cartão da primeira consulta. */
 function HeroArt() {
   return (
-    <div className="relative mx-auto h-[400px] w-[280px] sm:h-[480px] sm:w-[340px]" aria-hidden>
-      <div className="absolute inset-0 rounded-t-full rounded-b-[2.5rem] bg-linear-to-b from-perola via-perola-soft to-lilas/45 shadow-pop" />
-      <div className="absolute inset-3 rounded-t-full rounded-b-[2rem] border border-white/70" />
-      <LumeIcon className="absolute top-[20%] left-1/2 size-32 -translate-x-1/2 sm:size-36" tone="dark" />
-      <p className="absolute top-[56%] w-full text-center text-xl font-light tracking-[0.42em] text-noite">LUME</p>
-      <div className="absolute -bottom-5 -left-8 size-24 rounded-full bg-[radial-gradient(circle_at_35%_30%,#ffffff,#ead9e6_45%,#a794b3)] shadow-pop sm:-left-12 sm:size-28" />
+    <div className="relative mx-auto h-[400px] w-[280px] sm:h-[480px] sm:w-[340px]">
+      <div className="absolute inset-0 overflow-hidden rounded-t-full rounded-b-[2.5rem] bg-perola shadow-pop">
+        <Photo photo={PHOTOS.hero} priority className="size-full object-cover" />
+        <div className="absolute inset-0 bg-linear-to-t from-noite/25 via-transparent to-perola/10" />
+      </div>
+      <div className="absolute inset-3 rounded-t-full rounded-b-[2rem] border border-white/60" />
+      <span className="absolute top-5 left-1/2 flex size-14 -translate-x-1/2 items-center justify-center rounded-full bg-white/85 shadow-card backdrop-blur" aria-hidden>
+        <LumeIcon className="size-9" tone="dark" />
+      </span>
+      <div aria-hidden className="absolute -bottom-5 -left-8 size-24 rounded-full bg-[radial-gradient(circle_at_35%_30%,#ffffff,#ead9e6_45%,#a794b3)] shadow-pop sm:-left-12 sm:size-28" />
       <div className="absolute right-[-1.5rem] bottom-3 w-52 rounded-2xl border border-white/80 bg-white/90 p-4 shadow-pop backdrop-blur sm:right-[-3rem] sm:bottom-14 sm:w-56">
         <p className="flex items-center gap-1.5 text-[10px] font-medium tracking-[0.18em] text-accent uppercase">
           <CalendarHeart className="size-3.5" strokeWidth={1.5} />
@@ -158,24 +207,51 @@ function HeroArt() {
 }
 
 function Approach() {
+  const site = use(SiteContext)
   return (
     <section id="abordagem" className="scroll-mt-18 bg-white py-20 sm:py-28">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6">
-        <SectionTitle
-          eyebrow="Nossa abordagem"
-          title="Cuidado que começa por você"
-          text="Antes de qualquer procedimento, entendemos a sua história. Assim, cada escolha faz sentido para a sua saúde, e não só para o espelho."
-        />
-        <div className="mt-14 grid gap-5 md:grid-cols-3">
-          {PILLARS.map(({ icon: Icon, title, text }) => (
-            <article key={title} className="rounded-3xl border border-line bg-offwhite/60 p-7">
-              <span className="flex size-12 items-center justify-center rounded-full bg-perola text-accent">
-                <Icon className="size-5" strokeWidth={1.5} />
-              </span>
-              <h3 className="mt-6 text-lg font-normal text-noite">{title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-ink-soft">{text}</p>
-            </article>
-          ))}
+      <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 sm:px-6 lg:grid-cols-[0.95fr_1.05fr] lg:gap-16">
+        <div className="relative">
+          <Photo photo={PHOTOS.clinic} className="aspect-[13/15] w-full rounded-[2rem] object-cover shadow-card" />
+          <div className="absolute -right-3 -bottom-6 max-w-[230px] rounded-2xl bg-noite p-5 text-white shadow-pop sm:-right-6">
+            <p className="text-2xl font-light">60 min</p>
+            <p className="mt-1 text-xs leading-relaxed text-cinza">de avaliação integrativa antes de qualquer protocolo.</p>
+          </div>
+        </div>
+        <div>
+          <p className="eyebrow">Nossa abordagem</p>
+          <h2 className="mt-3 text-3xl font-light tracking-tight text-noite sm:text-4xl">Cuidado que começa por você</h2>
+          <p className="mt-4 text-[15px] leading-relaxed text-ink-soft">
+            Antes de qualquer procedimento, entendemos a sua história. Assim, cada escolha faz sentido para a sua saúde, e não só para o espelho.
+          </p>
+          <ul className="mt-10 space-y-7">
+            {PILLARS.map(({ icon: Icon, title, text }) => (
+              <li key={title} className="flex gap-5">
+                <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-perola text-accent">
+                  <Icon className="size-5" strokeWidth={1.5} />
+                </span>
+                <div>
+                  <h3 className="text-lg font-normal text-noite">{title}</h3>
+                  <p className="mt-1 text-sm leading-relaxed text-ink-soft">{text}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+          {site.professionalName && (
+            <div className="mt-10 flex items-center gap-4 border-t border-line pt-7">
+              <span className="flex size-14 shrink-0 items-center justify-center rounded-full bg-noite text-base font-light tracking-wider text-perola">{initials(site.professionalName)}</span>
+              <div>
+                <p className="text-[11px] font-medium tracking-[0.16em] text-ink-muted uppercase">Quem cuida de você</p>
+                <p className="mt-0.5 text-lg font-normal text-noite">{site.professionalName}</p>
+                {site.professionalRegistry && (
+                  <p className="mt-0.5 flex items-center gap-1.5 text-xs text-ink-soft">
+                    <BadgeCheck className="size-3.5 text-accent" strokeWidth={1.5} />
+                    {site.professionalRegistry}
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </section>
@@ -188,25 +264,30 @@ function Treatments() {
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <SectionTitle eyebrow="Tratamentos" title="Para a pele, o corpo e o bem-estar" text="Protocolos combinados conforme a sua avaliação. Valores e indicações são conversados na consulta." />
         <div className="mt-14 grid gap-5 sm:grid-cols-2">
-          {TREATMENTS.map(({ icon: Icon, title, text, items }) => (
-            <article key={title} className="group rounded-3xl border border-line bg-white p-7 shadow-card transition-shadow hover:shadow-pop">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <h3 className="text-xl font-light text-noite">{title}</h3>
-                  <p className="mt-1 text-sm text-ink-muted">{text}</p>
-                </div>
-                <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-lilas-soft text-accent">
-                  <Icon className="size-5" strokeWidth={1.5} />
-                </span>
+          {TREATMENTS.map(({ icon: Icon, title, text, items, photo }) => (
+            <article key={title} className="group overflow-hidden rounded-3xl border border-line bg-white shadow-card transition-shadow hover:shadow-pop">
+              <div className="overflow-hidden">
+                <Photo photo={photo} className="aspect-[16/10] w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]" />
               </div>
-              <ul className="mt-6 space-y-2.5 border-t border-line pt-5">
-                {items.map((item) => (
-                  <li key={item} className="flex items-center gap-2.5 text-sm text-ink-soft">
-                    <span className="size-1.5 rounded-full bg-lilas" />
-                    {item}
-                  </li>
-                ))}
-              </ul>
+              <div className="p-7">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <h3 className="text-xl font-light text-noite">{title}</h3>
+                    <p className="mt-1 text-sm text-ink-muted">{text}</p>
+                  </div>
+                  <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-lilas-soft text-accent">
+                    <Icon className="size-5" strokeWidth={1.5} />
+                  </span>
+                </div>
+                <ul className="mt-6 space-y-2.5 border-t border-line pt-5">
+                  {items.map((item) => (
+                    <li key={item} className="flex items-center gap-2.5 text-sm text-ink-soft">
+                      <span className="size-1.5 rounded-full bg-lilas" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </article>
           ))}
         </div>
@@ -239,12 +320,8 @@ function HowItWorks() {
 }
 
 function Contact() {
-  const channels = [
-    CLINIC.whatsapp && { icon: MessageCircle, label: 'WhatsApp', value: 'Conversar agora', href: bookingLink.href },
-    CLINIC.instagram && { icon: AtSign, label: 'Instagram', value: `@${CLINIC.instagram}`, href: `https://instagram.com/${CLINIC.instagram}` },
-    CLINIC.email && { icon: Mail, label: 'E-mail', value: CLINIC.email, href: `mailto:${CLINIC.email}` },
-    CLINIC.address && { icon: MapPin, label: 'Endereço', value: CLINIC.address, href: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(CLINIC.address)}` },
-  ].filter(Boolean) as Array<{ icon: LucideIcon; label: string; value: string; href: string }>
+  const site = use(SiteContext)
+  const channels = contactChannels(site)
 
   return (
     <section id="contato" className="scroll-mt-18 py-20 sm:py-28">
@@ -256,7 +333,7 @@ function Contact() {
             <p className="mt-4 max-w-md text-[15px] leading-relaxed text-ink-soft">
               O primeiro passo é a avaliação integrativa. Fale com a gente para escolher o melhor dia e horário.
             </p>
-            {bookingLink.external && <BookingButton className="mt-8" />}
+            {site.whatsapp && <BookingButton className="mt-8" />}
             {channels.length > 0 && (
               <ul className="mt-10 grid gap-4 sm:grid-cols-2">
                 {channels.map(({ icon: Icon, label, value, href }) => (
@@ -281,7 +358,7 @@ function Contact() {
               Horário de atendimento
             </p>
             <dl className="mt-5 divide-y divide-line">
-              {CLINIC.hours.map((h) => (
+              {site.hours.map((h) => (
                 <div key={h.days} className="flex items-center justify-between gap-4 py-3 text-sm">
                   <dt className="text-ink-soft">{h.days}</dt>
                   <dd className="num text-noite">{h.time}</dd>
@@ -297,18 +374,78 @@ function Contact() {
 }
 
 function Footer() {
+  const site = use(SiteContext)
+  const channels = contactChannels(site)
+  const link = 'underline-offset-4 transition-colors hover:text-white hover:underline'
   return (
-    <footer className="bg-noite">
-      <div className="mx-auto flex max-w-6xl flex-col items-center gap-6 px-4 py-12 text-center sm:px-6 md:flex-row md:justify-between md:text-left">
+    <footer className="bg-noite text-cinza">
+      <div className="mx-auto grid max-w-6xl gap-10 px-4 pt-14 pb-10 sm:grid-cols-2 sm:px-6 lg:grid-cols-[1.3fr_1fr_1fr_1fr]">
         <div>
           <LumeWordmark />
-          <p className="mt-4 text-xs tracking-[0.2em] text-cinza uppercase">Beleza que equilibra, saúde que ilumina.</p>
+          <p className="mt-5 max-w-xs text-xs leading-relaxed tracking-[0.2em] uppercase">Beleza que equilibra, saúde que ilumina.</p>
         </div>
-        <div className="space-y-2 text-xs text-cinza/80 md:text-right">
+
+        {site.professionalName && (
+          <div>
+            <p className="text-[11px] font-medium tracking-[0.18em] text-lilas uppercase">Profissional responsável</p>
+            <p className="mt-3 text-sm text-white">{site.professionalName}</p>
+            {site.professionalRegistry && <p className="mt-1 text-xs">{site.professionalRegistry}</p>}
+          </div>
+        )}
+
+        {channels.length > 0 && (
+          <div>
+            <p className="text-[11px] font-medium tracking-[0.18em] text-lilas uppercase">Contato</p>
+            <ul className="mt-3 space-y-2 text-sm">
+              {channels.map(({ icon: Icon, label, value, href }) => (
+                <li key={label}>
+                  <a href={href} target="_blank" rel="noreferrer" className={cn('inline-flex items-start gap-2 break-words', link)}>
+                    <Icon className="mt-0.5 size-3.5 shrink-0 text-lilas" strokeWidth={1.5} aria-hidden />
+                    <span className="sr-only">{label}: </span>
+                    {value}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        <div>
+          <p className="text-[11px] font-medium tracking-[0.18em] text-lilas uppercase">Atendimento</p>
+          <ul className="mt-3 space-y-1.5 text-sm">
+            {site.hours.map((h) => (
+              <li key={h.days}>
+                <span className="text-white">{h.days}</span> · <span className="num whitespace-nowrap">{h.time}</span>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-2 text-xs">Com hora marcada.</p>
+        </div>
+      </div>
+
+      <div className="border-t border-white/[0.08]">
+        {/* Espaço extra embaixo para o botão de WhatsApp não cobrir os links. */}
+        <div className={cn('mx-auto flex max-w-6xl flex-col gap-3 px-4 py-6 text-[11px] text-cinza/70 sm:px-6 md:flex-row md:items-center md:justify-between', site.whatsapp && 'pb-24 md:pr-56 md:pb-6')}>
           <p>
-            © {new Date().getFullYear()} {CLINIC.name}
+            © {new Date().getFullYear()} {site.clinicName}
+            {site.professionalName && ` · ${site.professionalName}`}
           </p>
-          <Link to="/admin" className="inline-block text-cinza/70 underline-offset-4 hover:text-white hover:underline">
+          <p>
+            Fotos:{' '}
+            {Object.values(PHOTOS).map((photo, i, all) => (
+              <span key={photo.src}>
+                <a href={photo.credit.page} target="_blank" rel="noreferrer" className={link}>
+                  {photo.credit.name}
+                </a>
+                {i < all.length - 1 ? ', ' : ''}
+              </span>
+            ))}{' '}
+            ·{' '}
+            <a href="https://unsplash.com" target="_blank" rel="noreferrer" className={link}>
+              Unsplash
+            </a>
+          </p>
+          <Link to="/admin" className={cn('whitespace-nowrap', link)}>
             Área da profissional
           </Link>
         </div>

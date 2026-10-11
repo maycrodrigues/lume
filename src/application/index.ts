@@ -1,5 +1,5 @@
 import { createActivityService, monotonicClock, withActivityLog } from './activityLog'
-import type { Clock, CredentialStore, DataStore, IdGenerator, ImageProcessor, PinHasher } from './ports'
+import type { Clock, CredentialStore, DataStore, IdGenerator, ImageProcessor, PinHasher, SitePublisher, SiteTokenStore } from './ports'
 import { createAccessService } from './services/access'
 import { createAppointmentService } from './services/appointments'
 import { createAssessmentService } from './services/assessments'
@@ -16,18 +16,21 @@ import { createPrescriptionService } from './services/prescriptions'
 import { createProcedureService } from './services/procedures'
 import { createScheduleService } from './services/schedule'
 import { createSettingsService } from './services/settings'
+import { createSiteService } from './services/site'
 
 /**
  * Interface única da aplicação para a camada de apresentação.
  * Toda escrita de dados passa pelo registro de atividades automaticamente.
  */
-export function createServices({ credentials, pinHasher, ...deps }: {
+export function createServices({ credentials, pinHasher, sitePublisher, siteToken, ...deps }: {
   store: DataStore
   clock: Clock
   newId: IdGenerator
   images: ImageProcessor
   credentials: CredentialStore
   pinHasher: PinHasher
+  sitePublisher: SitePublisher
+  siteToken: SiteTokenStore
 }) {
   const activityClock = monotonicClock(deps.clock)
   const store = withActivityLog(deps.store, { clock: activityClock, newId: deps.newId })
@@ -35,8 +38,9 @@ export function createServices({ credentials, pinHasher, ...deps }: {
   const activity = createActivityService({ ...d, clock: activityClock })
   const appointments = createAppointmentService(d)
   const finance = createFinanceService(d)
+  const settings = createSettingsService(d)
   return {
-    access: createAccessService(d, { credentials, pinHasher }, activity),
+    access: createAccessService(d, { credentials, pinHasher, siteToken }, activity),
     patients: createPatientService(d),
     procedures: createProcedureService(d),
     appointments,
@@ -50,7 +54,8 @@ export function createServices({ credentials, pinHasher, ...deps }: {
     schedule: createScheduleService(d),
     finance,
     dashboard: createDashboardService(d, { appointments, finance }),
-    settings: createSettingsService(d),
+    settings,
+    site: createSiteService(d, settings, activity, { sitePublisher, siteToken }),
     backup: createBackupService(d, activity),
     activity,
     /** Assina mudanças de dados (para a UI recarregar consultas). */
@@ -76,5 +81,6 @@ export type { PrescriptionInput, PrintablePrescription } from './services/prescr
 export type { ProcedureInput } from './services/procedures'
 export type { BlockInput, DayAvailability } from './services/schedule'
 export type { SettingsInput, WorkingHoursInput } from './services/settings'
+export type { SiteStatus } from './services/site'
 export type { ActivitySearch } from './activityLog'
 export type { Collection } from './ports'

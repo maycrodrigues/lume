@@ -18,6 +18,7 @@ import type {
   ScheduleBlock,
   Prescription,
   Procedure,
+  SiteProfile,
 } from '@/domain'
 
 /**
@@ -205,4 +206,18 @@ export interface CredentialStore {
 export interface PinHasher {
   hash(pin: string): Promise<PinDigest>
   verify(pin: string, digest: PinDigest): Promise<boolean>
+}
+
+/** Publica os dados públicos da clínica no site (ex.: um arquivo no repositório do GitHub Pages). */
+export interface SitePublisher {
+  /** Confere se o token dá acesso ao site; lança `DomainError` com o motivo. */
+  verify(token: string): Promise<void>
+  publish(profile: SiteProfile, token: string): Promise<void>
+}
+
+/** Token de publicação do site, guardado só neste navegador. */
+export interface SiteTokenStore {
+  get(): Promise<string | undefined>
+  save(token: string): Promise<void>
+  clear(): Promise<void>
 }

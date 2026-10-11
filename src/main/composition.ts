@@ -3,6 +3,8 @@ import { createLocalCredentialStore } from '@/infrastructure/access/localCredent
 import { createWebCryptoPinHasher } from '@/infrastructure/access/webCryptoPinHasher'
 import { createDexieStore } from '@/infrastructure/dexie/dexieStore'
 import { createCanvasImageProcessor } from '@/infrastructure/images/canvasImageProcessor'
+import { createGithubSitePublisher } from '@/infrastructure/site/githubSitePublisher'
+import { createLocalSiteTokenStore } from '@/infrastructure/site/localSiteTokenStore'
 
 /*
  * Raiz de composição do painel: o único lugar que conhece os adapters concretos.
@@ -16,6 +18,9 @@ export const services = createServices({
   images: createCanvasImageProcessor(),
   credentials: createLocalCredentialStore(),
   pinHasher: createWebCryptoPinHasher(),
+  // O site público (GitHub Pages) lê public/site.json; publicar grava esse arquivo no repositório.
+  sitePublisher: createGithubSitePublisher({ owner: 'maycrodrigues', repo: 'lume', branch: 'main', path: 'public/site.json' }),
+  siteToken: createLocalSiteTokenStore(),
 })
 
 window.addEventListener('error', (event) => {

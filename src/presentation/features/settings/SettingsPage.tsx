@@ -14,6 +14,7 @@ import { useAction, useSubmit } from '../../hooks/useAction'
 import { useLiveQuery } from '../../hooks/useLiveQuery'
 import { downloadJson, timeAgo, toDateInput } from '../../lib/format'
 import { ChangePinCard } from '../access/ChangePinCard'
+import { SitePublishCard } from './SitePublishCard'
 import { WorkingHoursCard } from './WorkingHoursCard'
 
 const COUNT_LABELS: Record<string, string> = {
@@ -59,8 +60,8 @@ function ClinicForm({ settings }: { settings: ClinicSettings }) {
         <Field label="Nome da clínica" required>{(id) => <Input id={id} {...register('clinicName')} />}</Field>
         <Field label="Profissional responsável" required>{(id) => <Input id={id} {...register('professionalName')} />}</Field>
         <Field label="Registro profissional" hint="Aparece na prescrição. Ex.: CRBM 12345">{(id) => <Input id={id} {...register('professionalRegistry')} />}</Field>
-        <Field label="Telefone">{(id) => <Input id={id} {...register('phone')} />}</Field>
-        <Field label="E-mail">{(id) => <Input id={id} type="email" {...register('email')} />}</Field>
+        <Field label="Telefone / WhatsApp" hint="Com DDD. É o número do botão de WhatsApp no site.">{(id) => <Input id={id} inputMode="tel" placeholder="(11) 91234-5678" {...register('phone')} />}</Field>
+        <Field label="E-mail" hint="Aparece no rodapé do site.">{(id) => <Input id={id} type="email" {...register('email')} />}</Field>
         <Field label="Instagram">{(id) => <Input id={id} placeholder="@lume.estetica" {...register('instagram')} />}</Field>
         <Field label="Endereço" className="sm:col-span-2">{(id) => <Input id={id} {...register('address')} />}</Field>
       </div>
@@ -126,6 +127,7 @@ export function SettingsPage() {
             {settings && <ClinicForm key={settings.updatedAt} settings={settings} />}
           </Card>
           <WorkingHoursCard />
+          <SitePublishCard />
         </div>
 
         <div className="space-y-6">

@@ -149,6 +149,16 @@ _Avoid_: sessão, login
 Espera obrigatória depois de cinco PINs errados seguidos; dobra a cada nova série de erros.
 _Avoid_: bloqueio de conta
 
+## Site
+
+**Site da clínica**:
+Página pública da clínica, com abordagem, tratamentos e contato. É separado do painel e não mostra dados de pacientes.
+_Avoid_: landing (em textos para a Profissional), portal
+
+**Publicação no site**:
+Envio, feito pela Profissional, dos dados públicos (nome e registro da profissional, WhatsApp, e-mail, Instagram, endereço e horários) das Configurações para o Site da clínica. O site só muda quando há uma nova publicação.
+_Avoid_: sincronização, atualização automática
+
 ## Registro de atividades
 
 **Registro de atividade**:

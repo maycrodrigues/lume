@@ -27,9 +27,20 @@ Os dados de demonstração são gerados com Faker (pt-BR) em `src/application/de
 | `/` | Landing page pública da clínica: abordagem, tratamentos, como funciona e contato. |
 | `/admin/...` | Todo o painel (agenda, pacientes, financeiro…), sempre atrás do PIN de acesso. O rodapé da landing tem o link "Área da profissional". |
 
-- **Dados de contato da landing:** WhatsApp, Instagram, e-mail, endereço e horários ficam em `src/presentation/features/landing/clinic.ts`. Campos vazios não aparecem. Com o WhatsApp preenchido, os botões "Agendar avaliação" abrem a conversa já com uma mensagem pronta. Sem ele, os botões levam à seção de contato. A página pública não lê as Configurações do painel, porque esses dados ficam só no navegador da profissional.
+- **Dados de contato da landing:** vêm do painel. Veja "Publicação dos dados no site" abaixo.
+- **Fotos:** as fotos vêm do Unsplash, com licença gratuita para uso comercial, e são servidas pelo CDN deles no tamanho e formato certos para cada tela. Para trocar uma foto, ajuste `src/presentation/features/landing/photos.tsx` (id da foto e ponto de foco). Os créditos aparecem no rodapé.
 - **Carregamento separado:** o painel é carregado só ao entrar em `/admin`. Isso vale para os serviços, o IndexedDB e cada tela. Quem visita a landing não baixa o sistema e não ganha um banco local no navegador.
 - **Endereços antigos** do painel, como `/agenda`, redirecionam para `/admin/agenda`. Qualquer outro endereço desconhecido volta para a landing.
+
+## Publicação dos dados no site
+
+O site mostra o nome e o registro da profissional, o botão discreto de WhatsApp, o e-mail, o Instagram, o endereço e os horários. Esses dados vêm de **Configurações → Dados da clínica** e do **Horário de atendimento**.
+
+1. Em Configurações → **Site**, cole uma vez um token do GitHub (fine-grained), com acesso só ao repositório `lume` e "Contents: Read and write". O cartão mostra o passo a passo.
+2. Clique em **Publicar no site**. O painel grava `public/site.json` no repositório, e o deploy atualiza o site em 1 a 2 minutos.
+3. Enquanto nada for publicado, o site fica sem os contatos, e os botões "Agendar avaliação" levam à seção de contato.
+
+Cada publicação é um commit na `main`, então faça `git pull --rebase` antes de enviar alterações de código. Detalhes e limites estão na [ADR 0006](docs/adr/0006-publicacao-do-site-pelo-github.md).
 
 ## Acesso com PIN
 

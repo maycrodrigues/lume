@@ -1,6 +1,6 @@
 import { accessExpiresAt, attemptsUntilPause, DomainError, isValidPin, pauseAfterFailures } from '@/domain'
 import type { ActivityService } from '../activityLog'
-import type { CredentialStore, PinCredential, PinHasher } from '../ports'
+import type { CredentialStore, PinCredential, PinHasher, SiteTokenStore } from '../ports'
 import type { ServiceDeps } from './deps'
 
 export type AccessStatus =
@@ -13,6 +13,8 @@ export type AccessStatus =
 export interface AccessDeps {
   credentials: CredentialStore
   pinHasher: PinHasher
+  /** Token de publicação do site: sem o PIN, ninguém deve continuar publicando. */
+  siteToken: SiteTokenStore
 }
 
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`
@@ -34,7 +36,7 @@ function assertNewPin(pin: string, confirmation: string) {
  * PIN de acesso ao painel (ver ADR 0005). O PIN certo libera este navegador até a próxima
  * segunda-feira; bloquear o painel ou chegar a segunda volta a pedir o PIN.
  */
-export function createAccessService({ store, clock }: ServiceDeps, { credentials, pinHasher }: AccessDeps, activity: ActivityService) {
+export function createAccessService({ store, clock }: ServiceDeps, { credentials, pinHasher, siteToken }: AccessDeps, activity: ActivityService) {
   const log = (action: string, message: string, level: 'info' | 'warning' = 'info') => activity.record({ category: 'access', action, message, level })
 
   async function current(): Promise<PinCredential> {
@@ -116,7 +118,8 @@ export function createAccessService({ store, clock }: ServiceDeps, { credentials
     async resetAll(): Promise<void> {
       await store.load({}, 'replace')
       await credentials.clear()
-      await log('access.reset', 'PIN esquecido: dados da clínica apagados e PIN removido (registros de atividade preservados)', 'warning')
+      await siteToken.clear()
+      await log('access.reset', 'PIN esquecido: dados da clínica, PIN e publicação do site removidos (registros de atividade preservados)', 'warning')
     },
   }
 }
