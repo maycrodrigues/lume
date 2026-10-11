@@ -6,12 +6,12 @@ import { useServices } from '../app/services'
 import { LumeWordmark } from '../components/brand/Logo'
 import { useAccess } from '../features/access/AccessGate'
 import { useLiveQuery } from '../hooks/useLiveQuery'
-import { firstName } from '../lib/format'
+import { firstName, formatLong } from '../lib/format'
 import { NAV_ITEMS, pageName } from './navigation'
 
 export function AppShell() {
   const services = useServices()
-  const { lock } = useAccess()
+  const { lock, until } = useAccess()
   const location = useLocation()
   // O menu móvel fica aberto só na navegação em que foi aberto: trocar de página o fecha.
   const [menuOpenAt, setMenuOpenAt] = useState<string>()
@@ -74,6 +74,7 @@ export function AppShell() {
           <LockKeyhole className="size-3.5" strokeWidth={1.5} />
           Bloquear painel
         </button>
+        <p className="mt-2 text-center text-[10px] text-cinza/70">PIN pedido de novo {formatLong(new Date(until))}</p>
       </div>
     </div>
   )

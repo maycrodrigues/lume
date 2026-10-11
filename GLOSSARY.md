@@ -134,12 +134,16 @@ Receitas pagas menos despesas pagas cujas datas caem no mês.
 ## Acesso
 
 **PIN de acesso**:
-Senha de 4 números que a Profissional cria no primeiro acesso e digita sempre que abre o painel naquele navegador. Vale para o navegador, não para os dados da clínica.
+Senha de 4 números que a Profissional cria no primeiro acesso e digita uma vez por semana naquele navegador. Vale para o navegador, não para os dados da clínica.
 _Avoid_: senha, login, usuário
 
 **Painel bloqueado**:
-Estado em que nada do painel aparece até o PIN de acesso ser digitado. O painel começa bloqueado a cada acesso e pode ser bloqueado pela Profissional a qualquer momento.
+Estado em que nada do painel aparece até o PIN de acesso ser digitado. O painel volta a ficar bloqueado toda segunda-feira, 00h, ou quando a Profissional o bloqueia.
 _Avoid_: logout, sair
+
+**Acesso liberado**:
+Período em que o painel abre sem pedir o PIN naquele navegador: do PIN digitado até a segunda-feira seguinte, 00h.
+_Avoid_: sessão, login
 
 **Pausa de tentativas**:
 Espera obrigatória depois de cinco PINs errados seguidos; dobra a cada nova série de erros.

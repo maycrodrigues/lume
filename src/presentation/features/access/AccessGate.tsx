@@ -3,7 +3,13 @@ import { useServices } from '../../app/services'
 import { LockScreen } from './LockScreen'
 import { useAccessSession } from './session'
 
-const AccessContext = createContext<{ lock: () => Promise<void> } | null>(null)
+interface AccessContextValue {
+  lock: () => Promise<void>
+  /** Até quando o painel abre sem pedir o PIN (próxima segunda-feira, 00h). */
+  until: string
+}
+
+const AccessContext = createContext<AccessContextValue | null>(null)
 
 export function useAccess() {
   const value = use(AccessContext)
@@ -11,18 +17,19 @@ export function useAccess() {
   return value
 }
 
-/** Nada do painel (nem os dados) é exibido antes de o PIN ser conferido nesta sessão. */
+/** Nada do painel (nem os dados) é exibido sem o PIN digitado nesta semana. */
 export function AccessGate({ children }: { children: ReactNode }) {
   const services = useServices()
-  const { state, unlock, lock: closeSession } = useAccessSession()
+  const { status, changed } = useAccessSession()
 
   const lock = useCallback(async () => {
     await services.access.lock()
-    closeSession()
-  }, [services, closeSession])
-  const value = useMemo(() => ({ lock }), [lock])
+    await changed()
+  }, [services, changed])
+  const until = status?.state === 'unlocked' ? status.until : ''
+  const value = useMemo(() => ({ lock, until }), [lock, until])
 
-  if (state === 'checking') return <div className="min-h-dvh bg-noite" />
-  if (state === 'locked') return <LockScreen onUnlocked={unlock} />
+  if (!status) return <div className="min-h-dvh bg-noite" />
+  if (status.state !== 'unlocked') return <LockScreen status={status} onChanged={changed} />
   return <AccessContext value={value}>{children}</AccessContext>
 }

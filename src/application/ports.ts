@@ -191,6 +191,8 @@ export interface PinCredential extends PinDigest {
   failedAttempts: number
   /** Até quando novas tentativas estão em pausa. */
   pausedUntil?: ISODateTime
+  /** Até quando o painel abre sem pedir o PIN neste navegador. */
+  unlockedUntil?: ISODateTime
 }
 
 export interface CredentialStore {

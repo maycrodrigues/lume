@@ -6,6 +6,7 @@ import { Button } from '../../components/ui/Button'
 import { Card, CardHeader } from '../../components/ui/Card'
 import { Field, Input } from '../../components/ui/Field'
 import { useSubmit } from '../../hooks/useAction'
+import { formatLong } from '../../lib/format'
 import { useAccess } from './AccessGate'
 
 const digits = (value: string) => value.replace(/\D/g, '').slice(0, 4)
@@ -17,7 +18,7 @@ function PinInput({ id, value, onChange }: { id: string; value: string; onChange
 /** Configurações → PIN de acesso: trocar o PIN e bloquear o painel. */
 export function ChangePinCard() {
   const services = useServices()
-  const { lock } = useAccess()
+  const { lock, until } = useAccess()
   const { submit, pending, error } = useSubmit()
   const [current, setCurrent] = useState('')
   const [next, setNext] = useState('')
@@ -37,7 +38,10 @@ export function ChangePinCard() {
     <Card>
       <CardHeader eyebrow="Acesso" title="PIN de acesso" />
       <form onSubmit={onSubmit} className="space-y-4 px-5 pb-5">
-        <p className="text-sm text-ink-muted">O PIN é pedido sempre que o painel é aberto neste navegador. Bloqueie o painel ao se afastar do computador.</p>
+        <p className="text-sm text-ink-muted">
+          O PIN é pedido toda segunda-feira e sempre que o painel é bloqueado. Neste navegador, o acesso está liberado até{' '}
+          <strong className="font-medium text-ink">{formatLong(new Date(until))}, 00h</strong>. Bloqueie o painel ao se afastar do computador.
+        </p>
         {error && <Alert>{error}</Alert>}
         <div className="flex flex-wrap gap-4">
           <Field label="PIN atual">{(id) => <PinInput id={id} value={current} onChange={setCurrent} />}</Field>

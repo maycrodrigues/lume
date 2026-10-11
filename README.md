@@ -20,10 +20,10 @@ Os dados de demonstração são gerados com Faker (pt-BR) em `src/application/de
 
 ## Acesso com PIN
 
-No primeiro acesso, o painel pede para criar um **PIN de 4 números**. Depois disso, ele pede o PIN sempre que é aberto (inclusive ao recarregar a página).
+No primeiro acesso, o painel pede para criar um **PIN de 4 números**. O PIN digitado libera o painel neste navegador **até a próxima segunda-feira, 00h**. Toda segunda o PIN é pedido de novo.
 
-- O botão **Bloquear painel**, na barra lateral, fecha o acesso na hora. Em Configurações → PIN de acesso dá para trocar o PIN.
-- Abas do painel abertas ao mesmo tempo compartilham o acesso (por exemplo, a impressão em outra aba). Bloquear vale para todas.
+- O botão **Bloquear painel**, na barra lateral, fecha o acesso na hora e volta a exigir o PIN. A barra lateral mostra quando o PIN será pedido de novo. Em Configurações → PIN de acesso dá para trocar o PIN.
+- O acesso liberado vale para todas as abas, e bloquear também. Se a segunda-feira chegar com o painel aberto, ele se bloqueia sozinho.
 - Cinco PINs errados seguidos causam uma pausa de 30 s, que dobra a cada nova série de erros.
 - **Esqueci o PIN**: a única saída é apagar os dados da clínica neste navegador e criar um PIN novo. Depois dá para restaurar um backup.
 - O PIN é uma trava de acesso, não criptografia, e fica guardado só como hash PBKDF2. Veja os detalhes e limites na [ADR 0005](docs/adr/0005-pin-de-acesso-local-por-navegador.md).

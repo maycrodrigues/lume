@@ -21,3 +21,14 @@ export function pauseAfterFailures(failures: number): number {
 
 /** Tentativas que ainda restam antes da próxima pausa. */
 export const attemptsUntilPause = (failures: number): number => ATTEMPTS_BEFORE_PAUSE - (failures % ATTEMPTS_BEFORE_PAUSE)
+
+/** Dia da semana em que o acesso liberado expira e o PIN volta a ser pedido (segunda-feira). */
+export const ACCESS_RENEWAL_WEEKDAY = 1
+
+/** O PIN digitado libera o painel até a próxima segunda-feira, 00h (horário local). */
+export function accessExpiresAt(unlockedAt: Date): Date {
+  const start = new Date(unlockedAt.getFullYear(), unlockedAt.getMonth(), unlockedAt.getDate())
+  const days = (7 + ACCESS_RENEWAL_WEEKDAY - start.getDay()) % 7 || 7
+  start.setDate(start.getDate() + days)
+  return start
+}

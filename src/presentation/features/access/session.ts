@@ -1,57 +1,59 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import type { AccessStatus } from '@/application'
+import { useServices } from '../../app/services'
 
-export type SessionState = 'checking' | 'locked' | 'unlocked'
-
-type Message = { type: 'ask' } | { type: 'unlocked' } | { type: 'locked' }
+type Message = { type: 'changed' }
 
 const CHANNEL = 'lume-access'
-/** Tempo para outra aba aberta responder que o painel já está liberado. */
-const ASK_TIMEOUT_MS = 250
+/** Com a aba aberta, confere a cada minuto se a segunda-feira chegou. */
+const EXPIRY_CHECK_MS = 60_000
 
 // BroadcastChannel não tem targetOrigin: as mensagens só circulam entre abas da mesma origem.
 // oxlint-disable-next-line unicorn/require-post-message-target-origin
 const send = (channel: BroadcastChannel | undefined, message: Message) => channel?.postMessage(message)
 
 /**
- * Sessão de acesso desta aba. Cada acesso começa bloqueado. Abas do painel abertas ao mesmo
- * tempo compartilham a sessão (a impressão abre em outra aba), e bloquear vale para todas.
+ * Situação do acesso neste navegador. A fonte da verdade é o serviço de acesso; as abas abertas
+ * só avisam umas às outras que algo mudou (PIN digitado, painel bloqueado) para reler.
  */
 export function useAccessSession() {
-  const [state, setState] = useState<SessionState>(() => (typeof BroadcastChannel === 'undefined' ? 'locked' : 'checking'))
-  const stateRef = useRef(state)
+  const services = useServices()
+  const [status, setStatus] = useState<AccessStatus>()
   const channelRef = useRef<BroadcastChannel>(undefined)
 
-  useEffect(() => {
-    stateRef.current = state
-  }, [state])
+  const refresh = useCallback(() => services.access.status().then(setStatus), [services])
 
   useEffect(() => {
+    void refresh()
     if (typeof BroadcastChannel === 'undefined') return
     const channel = new BroadcastChannel(CHANNEL)
     channelRef.current = channel
-    channel.addEventListener('message', (event: MessageEvent<Message>) => {
-      if (event.data.type === 'ask' && stateRef.current === 'unlocked') send(channel, { type: 'unlocked' })
-      if (event.data.type === 'unlocked') setState('unlocked')
-      if (event.data.type === 'locked') setState('locked')
-    })
-    send(channel, { type: 'ask' })
-    const timer = setTimeout(() => setState((s) => (s === 'checking' ? 'locked' : s)), ASK_TIMEOUT_MS)
+    channel.addEventListener('message', () => void refresh())
     return () => {
-      clearTimeout(timer)
       channel.close()
       channelRef.current = undefined
     }
-  }, [])
+  }, [refresh])
 
-  const unlock = useCallback(() => {
-    setState('unlocked')
-    send(channelRef.current, { type: 'unlocked' })
-  }, [])
+  // O acesso expira na segunda-feira mesmo com o painel aberto (inclusive ao voltar de um computador suspenso).
+  useEffect(() => {
+    if (status?.state !== 'unlocked') return
+    const check = () => {
+      if (Date.now() >= new Date(status.until).getTime()) void refresh()
+    }
+    const timer = setInterval(check, EXPIRY_CHECK_MS)
+    document.addEventListener('visibilitychange', check)
+    return () => {
+      clearInterval(timer)
+      document.removeEventListener('visibilitychange', check)
+    }
+  }, [status, refresh])
 
-  const lock = useCallback(() => {
-    setState('locked')
-    send(channelRef.current, { type: 'locked' })
-  }, [])
+  /** Relê a situação e avisa as outras abas. */
+  const changed = useCallback(async () => {
+    await refresh()
+    send(channelRef.current, { type: 'changed' })
+  }, [refresh])
 
-  return { state, unlock, lock }
+  return { status, changed }
 }

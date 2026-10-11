@@ -1,5 +1,5 @@
 import { Delete, LockKeyhole } from 'lucide-react'
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { AccessStatus } from '@/application'
 import { PIN_LENGTH } from '@/domain'
 import { useServices } from '../../app/services'
@@ -15,11 +15,12 @@ const clock = (ms: number) => {
   return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, '0')}`
 }
 
-/** Tela de PIN: cria o PIN no primeiro acesso e pede o PIN em todos os outros. */
-export function LockScreen({ onUnlocked }: { onUnlocked: () => void }) {
+type LockedStatus = Exclude<AccessStatus, { state: 'unlocked' }>
+
+/** Tela de PIN: cria o PIN no primeiro acesso e pede o PIN toda segunda-feira ou após bloquear. */
+export function LockScreen({ status, onChanged }: { status: LockedStatus; onChanged: () => Promise<void> }) {
   const services = useServices()
   const confirm = useConfirm()
-  const [status, setStatus] = useState<AccessStatus>()
   const [firstEntry, setFirstEntry] = useState<string>()
   const [pin, setPin] = useState('')
   const [error, setError] = useState<string>()
@@ -27,27 +28,22 @@ export function LockScreen({ onUnlocked }: { onUnlocked: () => void }) {
   const [busy, setBusy] = useState(false)
   const [now, setNow] = useState(() => Date.now())
 
-  const refresh = useCallback(() => services.access.status().then(setStatus), [services])
-  useEffect(() => {
-    void refresh()
-  }, [refresh])
-
-  const pausedFor = status?.state === 'locked' && status.pausedUntil ? new Date(status.pausedUntil).getTime() - now : 0
+  const pausedFor = status.state === 'locked' && status.pausedUntil ? new Date(status.pausedUntil).getTime() - now : 0
   const paused = pausedFor > 0
 
   // Contagem regressiva da pausa; ao terminar, volta a aceitar tentativas.
   useEffect(() => {
-    if (status?.state !== 'locked' || !status.pausedUntil) return
+    if (status.state !== 'locked' || !status.pausedUntil) return
     const timer = setInterval(() => {
       const current = Date.now()
       setNow(current)
       if (current >= new Date(status.pausedUntil!).getTime()) {
         setError(undefined)
-        void refresh()
+        void onChanged()
       }
     }, 1000)
     return () => clearInterval(timer)
-  }, [status, refresh])
+  }, [status, onChanged])
 
   const fail = (message: string) => {
     setError(message)
@@ -56,7 +52,6 @@ export function LockScreen({ onUnlocked }: { onUnlocked: () => void }) {
   }
 
   const submit = async (value: string) => {
-    if (!status) return
     if (status.state === 'setup' && firstEntry === undefined) {
       setFirstEntry(value)
       setPin('')
@@ -67,19 +62,19 @@ export function LockScreen({ onUnlocked }: { onUnlocked: () => void }) {
     try {
       if (status.state === 'setup') await services.access.createPin(firstEntry!, value)
       else await services.access.unlock(value)
-      onUnlocked()
+      await onChanged()
     } catch (e) {
       if (status.state === 'setup') setFirstEntry(undefined)
       fail(status.state === 'setup' ? `${errorMessage(e)} Comece de novo.` : errorMessage(e))
       setNow(Date.now())
-      await refresh()
+      await onChanged()
     } finally {
       setBusy(false)
     }
   }
 
   const press = (key: string) => {
-    if (busy || paused || !status) return
+    if (busy || paused) return
     if (key === 'back') {
       setPin((p) => p.slice(0, -1))
       return
@@ -115,7 +110,7 @@ export function LockScreen({ onUnlocked }: { onUnlocked: () => void }) {
       setFirstEntry(undefined)
       setPin('')
       setError(undefined)
-      await refresh()
+      await onChanged()
     } catch (e) {
       setError(errorMessage(e))
     } finally {
@@ -123,11 +118,11 @@ export function LockScreen({ onUnlocked }: { onUnlocked: () => void }) {
     }
   }
 
-  const creating = status?.state === 'setup'
+  const creating = status.state === 'setup'
   const title = creating ? (firstEntry === undefined ? 'Crie seu PIN de acesso' : 'Confirme o PIN') : 'Painel bloqueado'
   const description = creating
     ? firstEntry === undefined
-      ? 'Escolha 4 números. Ele será pedido sempre que o painel for aberto neste navegador.'
+      ? 'Escolha 4 números. Ele será pedido toda segunda-feira e sempre que o painel for bloqueado.'
       : 'Digite os mesmos 4 números mais uma vez.'
     : 'Digite seu PIN de 4 números para entrar.'
 
@@ -139,8 +134,8 @@ export function LockScreen({ onUnlocked }: { onUnlocked: () => void }) {
         <p className="mt-4 text-[22px] font-light tracking-[0.42em]">LUME</p>
         <p className="mt-1.5 text-[8px] font-medium tracking-[0.14em] text-cinza uppercase">Estética &amp; Cuidado Integrado</p>
 
-        <h1 className="mt-10 text-lg font-light">{status ? title : ' '}</h1>
-        <p className="mx-auto mt-1.5 max-w-[280px] text-xs leading-relaxed text-cinza">{status ? description : ' '}</p>
+        <h1 className="mt-10 text-lg font-light">{title}</h1>
+        <p className="mx-auto mt-1.5 max-w-[280px] text-xs leading-relaxed text-cinza">{description}</p>
 
         <div
           key={shake}
@@ -160,10 +155,10 @@ export function LockScreen({ onUnlocked }: { onUnlocked: () => void }) {
 
         <div className="mx-auto mt-2 grid w-fit grid-cols-3 gap-3">
           {KEYS.map((k) => (
-            <PinKey key={k} label={k} onPress={() => press(k)} disabled={busy || paused || !status} />
+            <PinKey key={k} label={k} onPress={() => press(k)} disabled={busy || paused} />
           ))}
           <span />
-          <PinKey label="0" onPress={() => press('0')} disabled={busy || paused || !status} />
+          <PinKey label="0" onPress={() => press('0')} disabled={busy || paused} />
           <button
             type="button"
             onClick={() => press('back')}
@@ -182,7 +177,7 @@ export function LockScreen({ onUnlocked }: { onUnlocked: () => void }) {
               Conferindo…
             </span>
           ) : (
-            status?.state === 'locked' && (
+            status.state === 'locked' && (
               <button type="button" onClick={forgot} className="text-lilas underline-offset-4 hover:text-perola hover:underline">
                 Esqueci o PIN
               </button>
