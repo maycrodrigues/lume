@@ -7,22 +7,18 @@ const thumbnailCache = new Map<Id, string>()
 
 export function usePhotoUrl(fileId: Id | undefined, { cache = false } = {}): string | undefined {
   const services = useServices()
-  const [url, setUrl] = useState<string | undefined>(() => (fileId && cache ? thumbnailCache.get(fileId) : undefined))
+  const [loaded, setLoaded] = useState<{ fileId: Id; url: string }>()
+  const cached = fileId && cache ? thumbnailCache.get(fileId) : undefined
 
   useEffect(() => {
-    if (!fileId) return
-    const cached = cache ? thumbnailCache.get(fileId) : undefined
-    if (cached) {
-      setUrl(cached)
-      return
-    }
+    if (!fileId || (cache && thumbnailCache.has(fileId))) return
     let alive = true
     let created: string | undefined
     void services.photos.file(fileId).then((blob) => {
       if (!blob || !alive) return
       created = URL.createObjectURL(blob)
       if (cache) thumbnailCache.set(fileId, created)
-      setUrl(created)
+      setLoaded({ fileId, url: created })
     })
     return () => {
       alive = false
@@ -30,5 +26,5 @@ export function usePhotoUrl(fileId: Id | undefined, { cache = false } = {}): str
     }
   }, [services, fileId, cache])
 
-  return url
+  return cached ?? (loaded && loaded.fileId === fileId ? loaded.url : undefined)
 }

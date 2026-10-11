@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 import { Check, ChevronLeft, ChevronRight, Clock, Search } from 'lucide-react'
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import { addDaysISO } from '@/application/dates'
 import type { Appointment, Id } from '@/domain'
 import { normalizeText, ScheduleConflictError } from '@/domain'
@@ -46,7 +46,7 @@ function AppointmentFormDialog({ onClose, appointment, initialStart, initialPati
   const [patientId, setPatientId] = useState<Id | undefined>(appointment?.patientId ?? initialPatientId)
   const [date, setDate] = useState(start ? toDateInput(start) : today)
   /** Só recebe valores escolhidos entre os horários disponíveis (ou o horário clicado na agenda, se continuar disponível). */
-  const [time, setTime] = useState(start ? toTimeInput(start) : '')
+  const [pickedTime, setTime] = useState(start ? toTimeInput(start) : '')
   const [selected, setSelected] = useState<Id[]>(appointment?.items.map((i) => i.procedureId) ?? [])
   const [notes, setNotes] = useState(appointment?.notes ?? '')
   const [search, setSearch] = useState('')
@@ -80,10 +80,8 @@ function AppointmentFormDialog({ onClose, appointment, initialStart, initialPati
     [date, duration, patientId, appointment?.id],
   )
 
-  // O horário escolhido sai da seleção se deixar de estar disponível (outra duração, outra data).
-  useEffect(() => {
-    if (!slotsLoading && freeSlots && time && !freeSlots.includes(time)) setTime('')
-  }, [freeSlots, slotsLoading, time])
+  // O horário escolhido deixa de valer se não estiver mais disponível (outra duração, outra data).
+  const time = pickedTime && !slotsLoading && freeSlots && !freeSlots.includes(pickedTime) ? '' : pickedTime
 
   const grouped = PERIODS.map((period, i) => ({
     label: period.label,

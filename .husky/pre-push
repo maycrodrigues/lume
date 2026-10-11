@@ -1,0 +1,3 @@
+# Completo: testes e build de produção antes de enviar ao GitHub
+npm test
+npm run build

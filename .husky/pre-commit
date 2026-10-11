@@ -1,0 +1,3 @@
+# Rápido: lint só nos arquivos do commit + typecheck do projeto
+npx lint-staged
+npm run typecheck

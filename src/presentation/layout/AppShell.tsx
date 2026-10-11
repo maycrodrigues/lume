@@ -11,12 +11,13 @@ import { NAV_ITEMS, pageName } from './navigation'
 export function AppShell() {
   const services = useServices()
   const location = useLocation()
-  const [menuOpen, setMenuOpen] = useState(false)
+  // O menu móvel fica aberto só na navegação em que foi aberto: trocar de página o fecha.
+  const [menuOpenAt, setMenuOpenAt] = useState<string>()
+  const menuOpen = menuOpenAt === location.key
   const lastLogged = useRef<string>(undefined)
   const { data: settings } = useLiveQuery(() => services.settings.get(), [], ['settings'])
 
   useEffect(() => {
-    setMenuOpen(false)
     const path = location.pathname + location.search
     if (lastLogged.current === path) return
     lastLogged.current = path
@@ -73,15 +74,15 @@ export function AppShell() {
 
       <div className="no-print sticky top-0 z-20 flex items-center justify-between bg-noite px-4 py-3 lg:hidden">
         <LumeWordmark compact />
-        <button type="button" onClick={() => setMenuOpen(true)} aria-label="Abrir menu" className="rounded-full p-2 text-white hover:bg-white/10">
+        <button type="button" onClick={() => setMenuOpenAt(location.key)} aria-label="Abrir menu" className="rounded-full p-2 text-white hover:bg-white/10">
           <Menu className="size-5" strokeWidth={1.5} />
         </button>
       </div>
       {menuOpen && (
         <div className="fixed inset-0 z-40 lg:hidden">
-          <div className="absolute inset-0 bg-noite/50" onClick={() => setMenuOpen(false)} />
+          <div role="presentation" className="absolute inset-0 bg-noite/50" onClick={() => setMenuOpenAt(undefined)} />
           <aside className="absolute inset-y-0 left-0 w-[260px] bg-noite">
-            <button type="button" onClick={() => setMenuOpen(false)} aria-label="Fechar menu" className="absolute top-4 right-3 rounded-full p-2 text-white hover:bg-white/10">
+            <button type="button" onClick={() => setMenuOpenAt(undefined)} aria-label="Fechar menu" className="absolute top-4 right-3 rounded-full p-2 text-white hover:bg-white/10">
               <X className="size-5" strokeWidth={1.5} />
             </button>
             {sidebar}

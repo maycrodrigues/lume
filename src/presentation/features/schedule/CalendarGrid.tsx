@@ -108,8 +108,10 @@ export function CalendarGrid({ days, appointments, availability, onSlotClick, on
             const closed = closedRanges(dayAvailability)
             const toTop = (minute: number) => ((minute - FIRST_HOUR * 60) / 60) * HOUR_HEIGHT
             return (
+              // Clique no horário livre é atalho de mouse; pelo teclado, use "Novo agendamento".
               <div
                 key={day.toISOString()}
+                role="presentation"
                 className={clsx('relative cursor-copy border-l border-line', isToday(day) && 'bg-perola-soft/40')}
                 style={{ height: HOURS.length * HOUR_HEIGHT }}
                 onClick={(e) => {

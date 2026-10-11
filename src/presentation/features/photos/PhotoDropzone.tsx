@@ -63,6 +63,7 @@ function PendingPreview({ item, onRegion, onRemove }: { item: PendingPhoto; onRe
   const [url, setUrl] = useState<string>()
   useEffect(() => {
     const u = URL.createObjectURL(item.file)
+    // oxlint-disable-next-line react/set-state-in-effect -- sincroniza com recurso externo (object URL revogado na limpeza)
     setUrl(u)
     return () => URL.revokeObjectURL(u)
   }, [item.file])

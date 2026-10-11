@@ -121,7 +121,7 @@ export function FinancePage() {
                   <th className="px-5 py-3 font-medium">Categoria</th>
                   <th className="px-5 py-3 font-medium">Situação</th>
                   <th className="px-5 py-3 text-right font-medium">Valor</th>
-                  <th className="px-5 py-3" />
+                  <th className="px-5 py-3"><span className="sr-only">Ações</span></th>
                 </tr>
               </thead>
               <tbody className={clsx(loading && 'opacity-60')}>

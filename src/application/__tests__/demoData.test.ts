@@ -5,7 +5,7 @@ import { toLocalISODate } from '../dates'
 import { buildDemoSnapshot } from '../demoData'
 import { setup } from './setup'
 
-const toLocalISODate_ = (iso: string) => toLocalISODate(new Date(iso))
+const localDay = (iso: string) => toLocalISODate(new Date(iso))
 
 const NOW = new Date('2026-10-10T11:00')
 let seq = 0
@@ -22,7 +22,7 @@ describe('Dados de demonstração', () => {
 
   it('não há sobreposição nem falta de intervalo entre pacientes', () => {
     const byDay = new Map<string, Appointment[]>()
-    active.forEach((a) => byDay.set(toLocalISODate_(a.start), [...(byDay.get(toLocalISODate_(a.start)) ?? []), a]))
+    active.forEach((a) => byDay.set(localDay(a.start), [...(byDay.get(localDay(a.start)) ?? []), a]))
     const problems: string[] = []
     for (const list of byDay.values()) {
       list.forEach((a, i) => list.slice(i + 1).forEach((b) => collides(a, b, DEFAULT_WORKING_HOURS.intervalMinutes) && problems.push(`${a.start} × ${b.start}`)))
@@ -35,7 +35,7 @@ describe('Dados de demonstração', () => {
       const start = new Date(a.start)
       const end = new Date(a.end)
       for (const block of snapshot.scheduleBlocks!) {
-        const range = blockRange(block, toLocalISODate_(a.start))
+        const range = blockRange(block, localDay(a.start))
         const from = start.getHours() * 60 + start.getMinutes()
         const to = end.getHours() * 60 + end.getMinutes()
         expect(Boolean(range && from < range.end && range.start < to), `${a.start} em bloqueio`).toBe(false)

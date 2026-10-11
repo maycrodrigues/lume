@@ -50,6 +50,8 @@ export function Modal({ open, onClose, title, description, size = 'md', children
   const bodyClass = 'flex max-h-[calc(100dvh-2rem)] flex-col'
 
   return (
+    // O clique no próprio <dialog> é o clique no fundo; pelo teclado, Esc fecha (onCancel).
+    // oxlint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions
     <dialog
       ref={ref}
       onCancel={(e) => {

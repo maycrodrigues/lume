@@ -50,7 +50,7 @@ export function createDashboardService(
       const monthNumber = now.getMonth() + 1
 
       const ranking = new Map<string, { name: string; count: number; revenue: Cents }>()
-      for (const c of consultations.filter((c) => c.date >= ninetyDaysAgo)) {
+      for (const c of consultations.filter((x) => x.date >= ninetyDaysAgo)) {
         for (const p of c.procedures) {
           const current = ranking.get(p.procedureId) ?? { name: p.name, count: 0, revenue: 0 }
           ranking.set(p.procedureId, { ...current, count: current.count + 1, revenue: current.revenue + p.price })

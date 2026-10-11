@@ -36,7 +36,7 @@ export function IssuedCouponsTable({ coupons, showPatient = true }: { coupons: I
             <th className="px-5 py-3 font-medium">Enviado</th>
             <th className="px-5 py-3 font-medium">Validade</th>
             <th className="px-5 py-3 font-medium">Situação</th>
-            <th className="px-5 py-3" />
+            <th className="px-5 py-3"><span className="sr-only">Ações</span></th>
           </tr>
         </thead>
         <tbody>

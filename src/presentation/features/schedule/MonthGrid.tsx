@@ -48,14 +48,16 @@ export function MonthGrid({ month, appointments, availability, onDayClick, onCre
           const fullBlock = info?.blocks.find((b) => b.fullDay)
           const closed = Boolean(info && (!info.open || fullBlock))
           return (
+            // Clique no dia é atalho de mouse; pelo teclado, use "Novo agendamento".
             <div
               key={day.toISOString()}
+              role="presentation"
               onClick={() => {
                 if (closed || !info?.start) return
                 const [h, m] = info.start.split(':').map(Number)
-                const start = new Date(day)
-                start.setHours(h, m, 0, 0)
-                onCreate(start)
+                const opening = new Date(day)
+                opening.setHours(h, m, 0, 0)
+                onCreate(opening)
               }}
               title={closed ? (fullBlock ? `Agenda bloqueada${fullBlock.reason ? ` · ${fullBlock.reason}` : ''}` : 'Sem atendimento neste dia') : undefined}
               className={clsx(

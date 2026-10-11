@@ -253,7 +253,7 @@ function ListEditor({ columns, value, onChange, addLabel }: { columns: Column[];
           <thead>
             <tr className="text-left text-[11px] tracking-wide text-ink-muted uppercase">
               {columns.map((c) => <th key={c.id} className="pr-2 pb-1.5 font-medium">{c.label}</th>)}
-              <th className="w-8" />
+              <th className="w-8"><span className="sr-only">Remover</span></th>
             </tr>
           </thead>
           <tbody>

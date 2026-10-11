@@ -18,6 +18,30 @@ Para explorar sem dados reais: Painel → "Carregar dados de demonstração" (s�
 
 Os dados de demonstração são gerados com Faker (pt-BR) em `src/application/demoData.ts` e respeitam as regras da agenda (horário de atendimento padrão, 15 min entre pacientes e bloqueios). O teste `demoData.test.ts` confere essas regras.
 
+## Commits e validações
+
+As mensagens de commit seguem [Conventional Commits](https://www.conventionalcommits.org/pt-br/v1.0.0/), no formato `<tipo>(<escopo opcional>): <descrição em minúsculas>`.
+
+```text
+feat(agenda): mostra só horários livres no agendamento
+fix(financeiro): corrige total com cupom aplicado
+docs: explica a publicação no GitHub Pages
+```
+
+Tipos aceitos: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore` e `revert`.
+
+Os hooks do Git ([Husky](https://typicode.github.io/husky/)) são instalados pelo `npm install`:
+
+| Hook | O que roda | Bloqueia quando |
+|---|---|---|
+| `commit-msg` | commitlint | a mensagem não segue o padrão |
+| `pre-commit` | Oxlint nos arquivos do commit (lint-staged) e typecheck | há erro ou aviso de lint, ou erro de tipo |
+| `pre-push` | testes e build de produção | algum teste ou o build falha |
+
+- `npm run lint` roda o Oxlint em todo o projeto, e `npm run check` roda lint, typecheck e testes. O CI também roda o lint antes dos testes.
+- O linter é o Oxlint, e não o ESLint, porque o `typescript-eslint` ainda não suporta o TypeScript 7. As regras ficam em `.oxlintrc.json`.
+- Exceções pontuais às regras ficam comentadas no próprio código, com o motivo.
+
 ## Publicação (GitHub Pages)
 
 Cada push na branch `main` roda os testes, gera o build e publica em **https://maycrodrigues.github.io/lume/** (workflow em `.github/workflows/deploy.yml`).

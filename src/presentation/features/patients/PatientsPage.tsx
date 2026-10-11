@@ -58,7 +58,7 @@ export function PatientsPage() {
                   <th className="px-5 py-3 font-medium">Idade</th>
                   <th className="px-5 py-3 font-medium">Cidade</th>
                   <th className="px-5 py-3 font-medium">Desde</th>
-                  <th className="px-5 py-3" />
+                  <th className="px-5 py-3"><span className="sr-only">Ações</span></th>
                 </tr>
               </thead>
               <tbody className={loading ? 'opacity-60 transition-opacity' : undefined}>

@@ -192,7 +192,7 @@ function ConsultationFormDialog({ onClose, patientId: fixedPatientId, appointmen
     const clinical = {
       ...notes,
       date: date && time ? fromDateTimeInputs(date, time) : '',
-      procedures: lines.map(({ procedureId, price, notes, patientPackageId }) => ({ procedureId, price, notes, patientPackageId })),
+      procedures: lines.map((l) => ({ procedureId: l.procedureId, price: l.price, notes: l.notes, patientPackageId: l.patientPackageId })),
     }
     const result = await submit(editing ? 'consultation.update' : 'consultation.register', async () => {
       if (consultation) return services.consultations.update(consultation.id, clinical)
