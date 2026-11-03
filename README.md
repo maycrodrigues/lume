@@ -90,6 +90,17 @@ Configuração no GitHub (Settings → Secrets and variables → Actions):
 
 Sem `CLOUDFLARE_DOMAIN`, o site é publicado em `lume.<conta>.workers.dev`. Os dados do painel ficam no navegador de cada endereço, então ao trocar de endereço use o backup (exportar no antigo e importar no novo).
 
+## API e dados na nuvem (em migração)
+
+O mesmo Worker serve o site, o painel e a API (`src/server/worker.ts`). Os dados ficam num Durable Object com SQLite, dentro do plano gratuito. Detalhes na [ADR 0007](docs/adr/0007-api-no-cloudflare-com-durable-object.md).
+
+- **Etapa 1 (pronta):** adapter SQLite (`src/infrastructure/sql/sqlStore.ts`), testado pela suíte de contrato e por todos os testes de serviço. API `POST /api/rpc` e `GET /api/me`, com verificação do Cloudflare Access.
+- **A API começa desligada (503)** até o login ser configurado. No painel do Cloudflare, em Zero Trust → Access → Applications, crie um aplicativo *self-hosted* para o endereço do Worker, cobrindo `/admin*` e `/api/*`, com política para o e-mail da profissional. Depois, em Workers & Pages → lume → Settings → Variables, defina:
+  - `ACCESS_TEAM_DOMAIN`: por exemplo `clinica.cloudflareaccess.com`.
+  - `ACCESS_AUD`: o *Application Audience (AUD) Tag* do aplicativo.
+  - `ALLOWED_EMAILS`: opcional, e-mails separados por vírgula.
+- **Próximas etapas:** a interface passa a usar a API, as fotos são enviadas já preparadas, e os dados atuais são importados pelo backup.
+
 ## Publicação (GitHub Pages)
 
 Cada push na branch `main` roda os testes, gera o build e publica em **https://maycrodrigues.github.io/lume/** (workflow em `.github/workflows/deploy.yml`).

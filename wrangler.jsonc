@@ -1,12 +1,24 @@
 {
-  // Site + painel como assets estáticos no Cloudflare Workers.
+  // Site, painel e API no Cloudflare Workers (plano gratuito). Ver ADR 0007.
   // O subdomínio vem da variável CLOUDFLARE_DOMAIN do GitHub (o workflow inclui a rota ao publicar).
   "$schema": "https://unpkg.com/wrangler@4/config-schema.json",
   "name": "lume",
+  "main": "./src/server/worker.ts",
+  "tsconfig": "./tsconfig.worker.json",
   "compatibility_date": "2026-11-01",
   "assets": {
     "directory": "./dist",
-    // Rotas do app (/admin/agenda…) devolvem o index.html, sem o truque do 404.html.
-    "not_found_handling": "single-page-application"
-  }
+    "binding": "ASSETS",
+    // Rotas do app (/admin/agenda…) devolvem o index.html; só /api/* passa pelo Worker.
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*"]
+  },
+  "durable_objects": {
+    "bindings": [{ "name": "CLINIC", "class_name": "Clinic" }]
+  },
+  // Durable Objects com SQLite são os disponíveis no plano gratuito.
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Clinic"] }],
+  "observability": { "enabled": true },
+  // ACCESS_TEAM_DOMAIN, ACCESS_AUD e ALLOWED_EMAILS são definidas no painel do Cloudflare e preservadas a cada deploy.
+  "keep_vars": true
 }

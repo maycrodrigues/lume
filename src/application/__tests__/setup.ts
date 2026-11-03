@@ -1,5 +1,7 @@
 import { createMemoryCredentialStore } from '@/infrastructure/memory/memoryCredentialStore'
 import { createMemoryStore } from '@/infrastructure/memory/memoryStore'
+import { createNodeSqlite } from '@/infrastructure/sql/nodeSqlite'
+import { createSqlStore } from '@/infrastructure/sql/sqlStore'
 import { DomainError } from '@/domain'
 import { createServices } from '../index'
 import type { ImageProcessor, PinHasher, SitePublisher, SiteTokenStore } from '../ports'
@@ -55,7 +57,8 @@ export const imageFile = (bytes = [1, 2, 3, 4]) => new Blob([new Uint8Array(byte
 export function setup(now = '2026-10-10T09:00') {
   let current = new Date(now)
   let sequence = 0
-  const store = createMemoryStore()
+  // LUME_STORE=sql roda os mesmos testes sobre o SQLite do servidor.
+  const store = process.env.LUME_STORE === 'sql' ? createSqlStore(createNodeSqlite()) : createMemoryStore()
   const credentials = createMemoryCredentialStore()
   const sitePublisher = fakeSitePublisher()
   const services = createServices({

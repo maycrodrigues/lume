@@ -5,11 +5,14 @@ import type { Collection, DataStore } from '@/application/ports'
 import type { Patient } from '@/domain'
 import { createDexieStore, SCHEMA_V1 } from './dexie/dexieStore'
 import { createMemoryStore } from './memory/memoryStore'
+import { createNodeSqlite } from './sql/nodeSqlite'
+import { createSqlStore } from './sql/sqlStore'
 
 let dbCounter = 0
 const adapters: Array<[string, () => DataStore]> = [
   ['memória', () => createMemoryStore()],
   ['IndexedDB', () => createDexieStore(`lume-test-${++dbCounter}`)],
+  ['SQLite (servidor)', () => createSqlStore(createNodeSqlite())],
 ]
 
 const patient = (id: string, name: string): Patient => ({
@@ -107,6 +110,7 @@ describe.each(adapters)('DataStore (%s)', (_name, create) => {
     await store.load({ patients: [patient('z', 'Zoe')] }, 'replace')
     expect((await store.patients.list()).map((p) => p.id)).toEqual(['z'])
     expect(await store.activity.query({})).toHaveLength(1)
+    expect(await store.activity.count()).toBe(1)
 
     await store.load({ patients: snapshot.patients }, 'merge')
     expect((await store.patients.list()).map((p) => p.id).sort()).toEqual(['a', 'z'])

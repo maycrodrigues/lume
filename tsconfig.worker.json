@@ -1,0 +1,10 @@
+{
+  // Tipos do servidor (Cloudflare Workers). O restante do app usa o tsconfig.json.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "lib": ["ES2023"],
+    "types": ["@cloudflare/workers-types"]
+  },
+  "include": ["src/server/worker.ts"],
+  "exclude": []
+}
