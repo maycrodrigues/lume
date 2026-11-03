@@ -1,0 +1,68 @@
+name: Publicar no Cloudflare
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cloudflare
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: cloudflare
+      url: ${{ vars.CLOUDFLARE_DOMAIN && format('https://{0}', vars.CLOUDFLARE_DOMAIN) || '' }}
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CLOUDFLARE_DOMAIN: ${{ vars.CLOUDFLARE_DOMAIN }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Testes
+        run: npm test
+
+      # No subdomínio o app fica na raiz.
+      - name: Build
+        run: npm run build
+        env:
+          BASE_PATH: /
+
+      - name: Conferir configuração
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            echo "::error::Faltam os secrets CLOUDFLARE_API_TOKEN e/ou CLOUDFLARE_ACCOUNT_ID (Settings → Secrets and variables → Actions)."
+            exit 1
+          fi
+
+      # Inclui o subdomínio (Custom Domain) quando a variável CLOUDFLARE_DOMAIN existe;
+      # sem ela, publica no endereço *.workers.dev.
+      - name: Rota do subdomínio
+        if: env.CLOUDFLARE_DOMAIN != ''
+        run: |
+          node -e "
+            const fs = require('fs')
+            const text = fs.readFileSync('wrangler.jsonc', 'utf8').replace(/^\s*\/\/.*$/gm, '')
+            const config = JSON.parse(text)
+            config.routes = [{ pattern: process.env.CLOUDFLARE_DOMAIN, custom_domain: true }]
+            fs.writeFileSync('wrangler.jsonc', JSON.stringify(config, null, 2))
+          "
+
+      - name: Publicar
+        run: npx --yes wrangler@4 deploy

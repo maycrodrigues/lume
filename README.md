@@ -76,6 +76,20 @@ Os hooks do Git ([Husky](https://typicode.github.io/husky/)) são instalados pel
 - O linter é o Oxlint, e não o ESLint, porque o `typescript-eslint` ainda não suporta o TypeScript 7. As regras ficam em `.oxlintrc.json`.
 - Exceções pontuais às regras ficam comentadas no próprio código, com o motivo.
 
+## Publicação no Cloudflare (subdomínio)
+
+O workflow `.github/workflows/deploy-cloudflare.yml` roda a cada push na `main`. Ele passa pelo lint, pelos testes e pelo build (na raiz, `BASE_PATH=/`) e publica com `wrangler deploy` como assets estáticos no Cloudflare Workers (`wrangler.jsonc`). O fallback de SPA é nativo, então não precisa de `404.html`.
+
+Configuração no GitHub (Settings → Secrets and variables → Actions):
+
+| Tipo | Nome | Valor |
+|---|---|---|
+| Secret | `CLOUDFLARE_API_TOKEN` | Token do Cloudflare com o modelo "Edit Cloudflare Workers" |
+| Secret | `CLOUDFLARE_ACCOUNT_ID` | ID da conta (painel do Cloudflare → Workers & Pages) |
+| Variável | `CLOUDFLARE_DOMAIN` | O subdomínio, por exemplo `lume.seudominio.com.br` (o domínio precisa estar no Cloudflare) |
+
+Sem `CLOUDFLARE_DOMAIN`, o site é publicado em `lume.<conta>.workers.dev`. Os dados do painel ficam no navegador de cada endereço, então ao trocar de endereço use o backup (exportar no antigo e importar no novo).
+
 ## Publicação (GitHub Pages)
 
 Cada push na branch `main` roda os testes, gera o build e publica em **https://maycrodrigues.github.io/lume/** (workflow em `.github/workflows/deploy.yml`).

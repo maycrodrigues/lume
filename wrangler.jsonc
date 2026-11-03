@@ -1,0 +1,12 @@
+{
+  // Site + painel como assets estáticos no Cloudflare Workers.
+  // O subdomínio vem da variável CLOUDFLARE_DOMAIN do GitHub (o workflow inclui a rota ao publicar).
+  "$schema": "https://unpkg.com/wrangler@4/config-schema.json",
+  "name": "lume",
+  "compatibility_date": "2026-11-01",
+  "assets": {
+    "directory": "./dist",
+    // Rotas do app (/admin/agenda…) devolvem o index.html, sem o truque do 404.html.
+    "not_found_handling": "single-page-application"
+  }
+}
