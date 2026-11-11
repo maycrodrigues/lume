@@ -8,7 +8,7 @@ describe('Anamnese', () => {
     const p = await services.patients.create({ name: 'Ana Lima' })
     const updated = await services.patients.updateAnamnesis(p.id, {
       complaint: '  Manchas no rosto  ',
-      waterIntake: '6',
+      waterIntake: ' 2 litros ',
       sleepHours: '7,5',
       diet: 'Regular',
       bowel: 'opção inexistente',
@@ -20,7 +20,7 @@ describe('Anamnese', () => {
     })
     expect(updated.anamnesis).toEqual({
       complaint: 'Manchas no rosto',
-      waterIntake: 6,
+      waterIntake: '2 litros',
       sleepHours: 7.5,
       diet: 'Regular',
       smoking: { yes: false },

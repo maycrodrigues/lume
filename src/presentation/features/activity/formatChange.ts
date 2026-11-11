@@ -2,15 +2,17 @@ import { describeAnswer, findQuestion, type Answer } from '@/domain'
 import { formatDate, formatDateTime, formatMoney } from '../../lib/format'
 import { APPOINTMENT_STATUS, COUPON_CHANNELS, ENTRY_STATUS, ENTRY_TYPE, FIELD_LABELS, GENDERS, IMAGE_CONSENT, MARITAL_STATUS, PAYMENT_METHODS } from '../../lib/labels'
 
-/** Campos de questionário chegam como `anamnesis.<id>` ou `answers.<id>`. */
+/** Campos de questionário chegam como `anamnesis.<id>`, `nutrition.<id>` ou `answers.<id>`. */
 const questionOf = (field: string) => {
   const [group, id] = field.split('.')
-  return (group === 'anamnesis' || group === 'answers') && id ? findQuestion(id) : undefined
+  return (group === 'anamnesis' || group === 'nutrition' || group === 'answers') && id ? findQuestion(id) : undefined
 }
+
+const QUESTIONNAIRE_GROUPS: Record<string, string> = { anamnesis: 'Anamnese', nutrition: 'Nutricional' }
 
 export function fieldLabel(field: string) {
   const question = questionOf(field)
-  if (question) return `${field.startsWith('anamnesis.') ? 'Anamnese' : 'Ficha'} · ${question.label}`
+  if (question) return `${QUESTIONNAIRE_GROUPS[field.split('.')[0]] ?? 'Ficha'} · ${question.label}`
   return FIELD_LABELS[field] ?? field
 }
 

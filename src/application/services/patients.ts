@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import type { Answers, Id, ImageConsent, Patient } from '@/domain'
-import { ANAMNESIS, cleanAnswers, DomainError, isValidCpf, normalizeText, NotFoundError, onlyDigits } from '@/domain'
+import { ANAMNESIS, cleanAnswers, NUTRITION, DomainError, isValidCpf, normalizeText, NotFoundError, onlyDigits } from '@/domain'
 import { isoDate, optionalChoice, optionalIsoDate, optionalText, parse } from '../validation'
 import type { ServiceDeps } from './deps'
 
@@ -34,7 +34,7 @@ const imageConsentSchema = z
   .optional()
 
 export type PatientInput = z.input<typeof patientSchema>
-/** Respostas brutas do formulário da Anamnese, validadas contra o modelo `ANAMNESIS`. */
+/** Respostas brutas do formulário da Anamnese (ou da Nutricional), validadas contra o modelo correspondente. */
 export type AnamnesisInput = Record<string, unknown>
 
 export interface PatientListOptions {
@@ -100,6 +100,17 @@ export function createPatientService({ store, clock, newId }: ServiceDeps) {
         const now = clock.now().toISOString()
         const anamnesis = cleanAnswers(ANAMNESIS, input as Answers, current.anamnesis)
         const updated: Patient = { ...current, anamnesis, anamnesisUpdatedAt: now, updatedAt: now }
+        await store.patients.save(updated)
+        return updated
+      })
+    },
+
+    async updateNutrition(id: Id, input: AnamnesisInput): Promise<Patient> {
+      return store.transaction(async () => {
+        const current = await get(id)
+        const now = clock.now().toISOString()
+        const nutrition = cleanAnswers(NUTRITION, input as Answers, current.nutrition)
+        const updated: Patient = { ...current, nutrition, nutritionUpdatedAt: now, updatedAt: now }
         await store.patients.save(updated)
         return updated
       })

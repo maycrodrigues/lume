@@ -245,7 +245,7 @@ function ConsultationFormDialog({ onClose, patientId: fixedPatientId, appointmen
     >
       <div className="space-y-7">
         {error && <Alert>{error}</Alert>}
-        {patient && <ClinicalAlerts anamnesis={patient.anamnesis} />}
+        {patient && <ClinicalAlerts patient={patient} />}
 
         <div className="grid gap-4 sm:grid-cols-4">
           {!fixedPatientId && !appointment && !consultation && (

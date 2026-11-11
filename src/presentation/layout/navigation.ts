@@ -22,6 +22,7 @@ export const NAV_ITEMS: NavItem[] = [
 export function pageName(fullPath: string): string {
   const pathname = fullPath.replace(/^\/admin(?=\/|$)/, '') || '/'
   if (pathname.endsWith('/anamnese/imprimir')) return 'Impressão de anamnese'
+  if (pathname.endsWith('/nutricional/imprimir')) return 'Impressão de anamnese nutricional'
   if (pathname.startsWith('/fichas/')) return 'Impressão de ficha'
   if (pathname.startsWith('/pacientes/')) return 'Prontuário'
   if (pathname.startsWith('/prescricoes/')) return 'Impressão de prescrição'
