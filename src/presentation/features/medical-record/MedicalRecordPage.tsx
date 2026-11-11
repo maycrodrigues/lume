@@ -31,7 +31,7 @@ import { ConsultationFormModal } from './ConsultationFormModal'
 import { PrescriptionFormModal } from './PrescriptionFormModal'
 import { AppointmentsTab, ConsultationsTab, FinanceTab, PrescriptionsTab, ProceduresTab } from './RecordTabs'
 
-type Tab = 'consultations' | 'anamnesis' | 'assessments' | 'photos' | 'procedures' | 'prescriptions' | 'packages' | 'appointments' | 'finance'
+type Tab = 'consultations' | 'anamnesis' | 'nutrition' | 'assessments' | 'photos' | 'procedures' | 'prescriptions' | 'packages' | 'appointments' | 'finance'
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
@@ -136,7 +136,7 @@ export function MedicalRecordPage() {
         </div>
       </Card>
 
-      <ClinicalAlerts anamnesis={patient.anamnesis} className="mb-5" />
+      <ClinicalAlerts patient={patient} className="mb-5" />
 
       <div className="mb-5">
         <Tabs<Tab>
@@ -145,6 +145,7 @@ export function MedicalRecordPage() {
           tabs={[
             { value: 'consultations', label: 'Atendimentos', count: record.consultations.length },
             { value: 'anamnesis', label: 'Anamnese' },
+            { value: 'nutrition', label: 'Nutricional' },
             { value: 'assessments', label: 'Fichas', count: record.assessments.length },
             { value: 'photos', label: 'Fotos', count: record.photos.length },
             { value: 'procedures', label: 'Procedimentos', count: record.performedProcedures.length },
@@ -159,9 +160,12 @@ export function MedicalRecordPage() {
       {tab === 'consultations' && (
         <ConsultationsTab record={record} onEdit={(c) => setConsultationForm({ consultation: c })} onNew={() => setConsultationForm({})} onOpenPhotos={openPhotos} />
       )}
-      {/* Sempre montada: trocar de aba não descarta uma anamnese em edição. */}
+      {/* Sempre montadas: trocar de aba não descarta uma anamnese em edição. */}
       <div hidden={tab !== 'anamnesis'}>
-        <AnamnesisTab key={patient.anamnesisUpdatedAt ?? 'new'} patient={patient} />
+        <AnamnesisTab key={patient.anamnesisUpdatedAt ?? 'new'} patient={patient} kind="anamnesis" />
+      </div>
+      <div hidden={tab !== 'nutrition'}>
+        <AnamnesisTab key={patient.nutritionUpdatedAt ?? 'new'} patient={patient} kind="nutrition" />
       </div>
       {tab === 'assessments' && <AssessmentsTab record={record} onNew={(template) => setAssessmentForm({ template })} onEdit={(assessment) => setAssessmentForm({ assessment })} />}
       {tab === 'photos' && <PhotosTab record={record} onAdd={() => setAddingPhotos(true)} onOpen={openPhotos} />}

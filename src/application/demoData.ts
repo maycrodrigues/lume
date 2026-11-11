@@ -606,7 +606,7 @@ function demoAnamnesis(faker: Faker, gender: Gender, declarationDate: string): A
     smoking: yesNo(0.06, () => pick(['5 cigarros por dia', '10 cigarros por dia'])),
     alcohol: yesNo(0.5, () => pick(['Socialmente, fins de semana', '1 taça de vinho por dia'])),
     physicalActivity: yesNo(0.6, () => pick(['Pilates 2x/semana', 'Caminhada diária', 'Musculação 3x/semana', 'Yoga 1x/semana'])),
-    waterIntake: faker.number.int({ min: 3, max: 10 }),
+    waterIntake: faker.helpers.arrayElement(['4 copos', '6 copos', '8 copos', '1,5 litro', '2 litros', '3 litros']),
     sleepHours: faker.number.int({ min: 5, max: 8 }),
     sleepQuality: pick(['Boa', 'Regular', 'Péssima']),
     diet: pick(['Boa', 'Regular']),

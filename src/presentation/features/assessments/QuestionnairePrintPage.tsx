@@ -1,6 +1,6 @@
 import { useParams } from 'react-router'
 import type { Assessment, ClinicSettings, Patient, Questionnaire } from '@/domain'
-import { ageAt, ANAMNESIS, ASSESSMENT_TEMPLATES } from '@/domain'
+import { ageAt, ANAMNESIS, ASSESSMENT_TEMPLATES, NUTRITION } from '@/domain'
 import { useServices } from '../../app/services'
 import { PrintSheet } from '../../components/print/PrintSheet'
 import { QuestionnaireSummary } from '../../components/questionnaire/QuestionnaireSummary'
@@ -83,6 +83,17 @@ export function AnamnesisPrintPage() {
   const { data, error } = useLiveQuery(async (): Promise<Printable> => {
     const [patient, clinic] = await Promise.all([services.patients.get(patientId), services.settings.get()])
     return { patient, clinic, questionnaire: ANAMNESIS, answers: patient.anamnesis, kind: 'anamnesis', date: patient.anamnesisUpdatedAt }
+  }, [patientId])
+  if (error) return <p className="p-10 text-center text-sm text-ink-muted">{error.message}</p>
+  return data ? <PrintBody data={data} /> : null
+}
+
+export function NutritionPrintPage() {
+  const { patientId = '' } = useParams()
+  const services = useServices()
+  const { data, error } = useLiveQuery(async (): Promise<Printable> => {
+    const [patient, clinic] = await Promise.all([services.patients.get(patientId), services.settings.get()])
+    return { patient, clinic, questionnaire: NUTRITION, answers: patient.nutrition ?? {}, kind: 'assessment', date: patient.nutritionUpdatedAt }
   }, [patientId])
   if (error) return <p className="p-10 text-center text-sm text-ink-muted">{error.message}</p>
   return data ? <PrintBody data={data} /> : null

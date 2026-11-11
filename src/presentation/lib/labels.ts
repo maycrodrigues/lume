@@ -155,6 +155,7 @@ export const FIELD_LABELS: Record<string, string> = {
   state: 'UF',
   zipCode: 'CEP',
   anamnesisUpdatedAt: 'Anamnese atualizada em',
+  nutritionUpdatedAt: 'Anamnese nutricional atualizada em',
   'imageConsent.scope': 'Autorização de uso de imagem',
   'imageConsent.date': 'Data da autorização de imagem',
   sessionNumber: 'Nº da sessão',

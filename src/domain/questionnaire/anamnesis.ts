@@ -26,7 +26,7 @@ export const ANAMNESIS: Questionnaire = {
         { id: 'smoking', type: 'yesno', label: 'Tabagismo', detail: 'Cigarros por dia' },
         { id: 'alcohol', type: 'yesno', label: 'Ingere bebida alcoólica', detail: 'Frequência' },
         { id: 'physicalActivity', type: 'yesno', label: 'Pratica atividade física', detail: 'Qual e frequência?' },
-        { id: 'waterIntake', type: 'number', label: 'Ingestão de água', unit: 'copos/dia' },
+        { id: 'waterIntake', type: 'text', label: 'Ingestão de água por dia', placeholder: 'Ex.: 6 copos, 2 litros' },
         { id: 'sleepHours', type: 'number', label: 'Horas de sono por noite', unit: 'h' },
         { id: 'sleepQuality', type: 'choice', label: 'Qualidade do sono', options: FREQUENCY },
         { id: 'diet', type: 'choice', label: 'Alimentação', options: FREQUENCY },

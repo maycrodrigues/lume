@@ -33,6 +33,9 @@ export interface Patient extends Entity {
   /** Respostas da Ficha de Anamnese (modelo `ANAMNESIS`). */
   anamnesis: Answers
   anamnesisUpdatedAt?: ISODateTime
+  /** Respostas da Ficha de Anamnese Nutricional (modelo `NUTRITION`); ausente em cadastros antigos. */
+  nutrition?: Answers
+  nutritionUpdatedAt?: ISODateTime
   imageConsent?: ImageConsent
 }
 
