@@ -1,4 +1,4 @@
-import { ChevronRight, Plus, Search, Users } from 'lucide-react'
+import { ChevronRight, ClipboardList, Plus, Search, Users } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { ageAt } from '@/domain'
@@ -10,6 +10,7 @@ import { Card } from '../../components/ui/Card'
 import { EmptyState } from '../../components/ui/EmptyState'
 import { Input, Switch } from '../../components/ui/Field'
 import { PageHeader } from '../../components/ui/PageHeader'
+import { useAction } from '../../hooks/useAction'
 import { useLiveQuery } from '../../hooks/useLiveQuery'
 import { formatDate, formatPhone } from '../../lib/format'
 import { PatientFormModal } from './PatientFormModal'
@@ -20,8 +21,18 @@ export function PatientsPage() {
   const [search, setSearch] = useState('')
   const [includeInactive, setIncludeInactive] = useState(false)
   const [creating, setCreating] = useState(false)
+  const [preparingStudy, setPreparingStudy] = useState(false)
+  const run = useAction()
   const { data: patients, loading } = useLiveQuery(() => services.patients.list({ search, includeInactive }), [search, includeInactive])
   const today = new Date()
+
+  /** Cria (ou reaproveita) as pacientes de teste do estudo de caso e abre o relatório para imprimir. */
+  async function openCaseStudy() {
+    setPreparingStudy(true)
+    const result = await run('caseStudy.create', () => services.caseStudies.createTestCases())
+    setPreparingStudy(false)
+    if (result.ok) navigate(`/admin/estudo-de-caso/imprimir?pares=${result.value.map((pair) => pair.join('.')).join(',')}`)
+  }
 
   return (
     <>
@@ -29,7 +40,14 @@ export function PatientsPage() {
         eyebrow="Cuidado"
         title="Pacientes"
         description="Cadastro, contato e acesso ao prontuário de cada paciente."
-        actions={<Button icon={<Plus className="size-4" />} onClick={() => setCreating(true)}>Nova paciente</Button>}
+        actions={
+          <>
+            <Button variant="secondary" icon={<ClipboardList className="size-4" strokeWidth={1.5} />} loading={preparingStudy} onClick={() => void openCaseStudy()}>
+              Estudo de caso
+            </Button>
+            <Button icon={<Plus className="size-4" />} onClick={() => setCreating(true)}>Nova paciente</Button>
+          </>
+        }
       />
 
       <Card>
