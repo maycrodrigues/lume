@@ -2,6 +2,7 @@ import { z } from 'zod'
 import type { Answers, Id, ImageConsent, Patient } from '@/domain'
 import { ANAMNESIS, cleanAnswers, NUTRITION, DomainError, isValidCpf, normalizeText, NotFoundError, onlyDigits } from '@/domain'
 import { isoDate, optionalChoice, optionalIsoDate, optionalText, parse } from '../validation'
+import { isCaseStudyPatient } from './caseStudies'
 import type { ServiceDeps } from './deps'
 
 const patientSchema = z.object({
@@ -40,6 +41,8 @@ export type AnamnesisInput = Record<string, unknown>
 export interface PatientListOptions {
   search?: string
   includeInactive?: boolean
+  /** Só as pacientes de teste dos estudos de caso. */
+  caseStudiesOnly?: boolean
 }
 
 export function createPatientService({ store, clock, newId }: ServiceDeps) {
@@ -60,11 +63,12 @@ export function createPatientService({ store, clock, newId }: ServiceDeps) {
   return {
     get,
 
-    async list({ search, includeInactive = false }: PatientListOptions = {}): Promise<Patient[]> {
+    async list({ search, includeInactive = false, caseStudiesOnly = false }: PatientListOptions = {}): Promise<Patient[]> {
       const term = search ? normalizeText(search) : ''
       const digits = search ? onlyDigits(search) : ''
       return (await store.patients.list())
         .filter((p) => includeInactive || p.active)
+        .filter((p) => !caseStudiesOnly || isCaseStudyPatient(p))
         .filter(
           (p) =>
             !term ||

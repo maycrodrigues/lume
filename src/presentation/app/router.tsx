@@ -51,6 +51,7 @@ export function createAppRouter(loadServices: LoadServices) {
           { path: 'prescricoes/:prescriptionId/imprimir', lazy: screen(() => import('../features/medical-record/PrescriptionPrintPage'), (m) => m.PrescriptionPrintPage) },
           { path: 'pacientes/:patientId/anamnese/imprimir', lazy: screen(() => import('../features/assessments/QuestionnairePrintPage'), (m) => m.AnamnesisPrintPage) },
           { path: 'pacientes/:patientId/nutricional/imprimir', lazy: screen(() => import('../features/assessments/QuestionnairePrintPage'), (m) => m.NutritionPrintPage) },
+          { path: 'estudo-de-caso/imprimir', lazy: screen(() => import('../features/assessments/CaseStudyPrintPage'), (m) => m.CaseStudyPrintPage) },
           { path: 'fichas/:assessmentId/imprimir', lazy: screen(() => import('../features/assessments/QuestionnairePrintPage'), (m) => m.AssessmentPrintPage) },
         ],
       },

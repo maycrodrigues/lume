@@ -4,6 +4,7 @@ import { createAccessService } from './services/access'
 import { createAppointmentService } from './services/appointments'
 import { createAssessmentService } from './services/assessments'
 import { createBackupService } from './services/backup'
+import { createCaseStudyService } from './services/caseStudies'
 import { createConsultationService } from './services/consultations'
 import { createCouponService } from './services/coupons'
 import { createDashboardService } from './services/dashboard'
@@ -39,15 +40,18 @@ export function createServices({ credentials, pinHasher, sitePublisher, siteToke
   const appointments = createAppointmentService(d)
   const finance = createFinanceService(d)
   const settings = createSettingsService(d)
+  const patients = createPatientService(d)
+  const assessments = createAssessmentService(d)
   return {
     access: createAccessService(d, { credentials, pinHasher, siteToken }, activity),
-    patients: createPatientService(d),
+    patients,
     procedures: createProcedureService(d),
     appointments,
     consultations: createConsultationService(d),
     prescriptions: createPrescriptionService(d),
     medicalRecords: createMedicalRecordService(d),
-    assessments: createAssessmentService(d),
+    assessments,
+    caseStudies: createCaseStudyService(d, { patients, assessments }),
     photos: createPhotoService(d),
     packages: createPackageService(d),
     coupons: createCouponService(d),
@@ -70,6 +74,8 @@ export type { AppointmentView, ScheduleInput } from './services/appointments'
 export type { AssessmentInput, MeasureEvolution } from './services/assessments'
 export type { PhotoInput, PhotoUpdateInput } from './services/photos'
 export type { BackupFile } from './services/backup'
+export type { CaseStudyCase, CaseStudyReport } from './services/caseStudies'
+export { isCaseStudyPatient } from './services/caseStudies'
 export type { CouponCheck, CouponInput, CouponView, IssueCouponInput, IssuedCouponView } from './services/coupons'
 export type { AvailableSession, ContractView, PackageInput, PackageView, SellPackageInput } from './services/packages'
 export type { RegisterConsultationInput, UpdateConsultationInput } from './services/consultations'

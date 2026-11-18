@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import type { Appointment } from '@/domain'
-import { assertWithinWorkingHours, blockRange, collides, contractUsage, DEFAULT_WORKING_HOURS, isActiveAppointment, isValidCpf } from '@/domain'
+import { assertWithinWorkingHours, blockRange, cleanAnswers, collides, contractUsage, DEFAULT_WORKING_HOURS, isActiveAppointment, isValidCpf, NUTRITION } from '@/domain'
 import { toLocalISODate } from '../dates'
+import { CASE_STUDIES } from '../caseStudyData'
+import { caseStudyNote } from '../services/caseStudies'
 import { buildDemoSnapshot } from '../demoData'
 import { setup } from './setup'
 
@@ -54,6 +56,35 @@ describe('Dados de demonstração', () => {
       const patient = patients.find((p) => p.id === a.patientId)!
       expect(patient.createdAt <= a.start).toBe(true)
     }
+  })
+
+  it('preenche a ficha Nutricional de cada paciente só com respostas válidas para o modelo', () => {
+    for (const patient of snapshot.patients!) {
+      expect(patient.nutrition).toBeDefined()
+      expect(cleanAnswers(NUTRITION, patient.nutrition!)).toEqual(patient.nutrition)
+      expect('nutrition_cycleIrregular' in patient.nutrition!).toBe(patient.gender === 'female')
+    }
+  })
+
+  it('inclui as pacientes dos estudos de caso, em pares com a mesma disfunção e fichas completas', () => {
+    const cases = CASE_STUDIES.flatMap((study) => study.cases.map((definition) => ({ study, definition })))
+    expect(cases.length).toBeGreaterThanOrEqual(4)
+    for (const { study, definition } of cases) {
+      const patient = snapshot.patients!.find((p) => p.notes === caseStudyNote(definition.key))
+      expect(patient?.name).toBe(definition.patient.name)
+      expect(patient!.anamnesis.complaint).toBe(definition.anamnesis.complaint)
+      const assessment = snapshot.assessments!.find((a) => a.patientId === patient!.id && a.template === study.template)
+      expect(assessment?.answers).toEqual(definition.assessment)
+    }
+  })
+
+  it('o botão "Estudo de caso" reaproveita as pacientes da demonstração', async () => {
+    const { services } = setup('2026-10-10T11:00')
+    await services.backup.loadDemoData()
+    const before = (await services.patients.list()).length
+    const reports = await services.caseStudies.report((await services.caseStudies.createTestCases()).pairs)
+    expect(await services.patients.list()).toHaveLength(before)
+    expect(reports.map((r) => r.title)).toEqual(['Hiperpigmentação facial', 'Lipodistrofia localizada', 'Queda capilar masculina'])
   })
 
   it('sessões de pacote e cupons usados batem com os contratos e cupons emitidos', () => {

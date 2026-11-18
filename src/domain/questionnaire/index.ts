@@ -5,6 +5,7 @@ import type { Question, Questionnaire } from './engine'
 import { allQuestions } from './engine'
 
 export * from './engine'
+export * from './compare'
 export { ANAMNESIS, NUTRITION }
 
 /** Modelos de Ficha de avaliação, na ordem em que aparecem para a Profissional. */

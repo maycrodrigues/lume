@@ -1,4 +1,4 @@
-import type { Answers, Column, GridAnswer, Questionnaire } from './engine'
+import type { Answers, Column, GridAnswer, Questionnaire, Section } from './engine'
 import { formatNumber, toNumber } from './engine'
 
 const INTENSITY = ['+', '++', '+++', '++++']
@@ -39,6 +39,38 @@ function skinfoldSum(answers: Answers) {
   return values.length ? `${formatNumber(values.reduce((a, b) => a + b, 0))} mm` : undefined
 }
 
+/**
+ * Análise e plano de tratamento, ao fim de cada Ficha de avaliação estética: fatores associados,
+ * interpretação dos achados, objetivos e protocolo justificado. `prefix` mantém os ids únicos entre modelos.
+ */
+const planSection = (prefix: string): Section => ({
+  id: 'plan',
+  title: 'Análise e plano de tratamento',
+  questions: [
+    { id: `${prefix}_dysfunction`, type: 'text', label: 'Disfunção estética principal', wide: true },
+    { id: `${prefix}_factors`, type: 'textarea', label: 'Fatores associados', wide: true },
+    { id: `${prefix}_aggravants`, type: 'textarea', label: 'Fatores agravantes', wide: true },
+    { id: `${prefix}_contraindications`, type: 'textarea', label: 'Contraindicações e precauções', wide: true },
+    { id: `${prefix}_care`, type: 'textarea', label: 'Cuidados necessários', wide: true },
+    { id: `${prefix}_interpretation`, type: 'textarea', label: 'Interpretação dos achados', wide: true },
+    { id: `${prefix}_goals`, type: 'textarea', label: 'Objetivos terapêuticos', wide: true },
+    {
+      id: `${prefix}_protocol`,
+      type: 'list',
+      label: 'Protocolo de tratamento',
+      addLabel: 'Adicionar etapa',
+      wide: true,
+      columns: [
+        { id: 'step', label: 'Etapa' },
+        { id: 'resource', label: 'Recurso / ativo' },
+        { id: 'parameters', label: 'Parâmetros' },
+        { id: 'frequency', label: 'Frequência / sessões' },
+        { id: 'rationale', label: 'Justificativa' },
+      ],
+    },
+  ],
+})
+
 export const FACIAL_ASSESSMENT: Questionnaire = {
   id: 'facial',
   title: 'Avaliação facial',
@@ -74,7 +106,7 @@ export const FACIAL_ASSESSMENT: Questionnaire = {
           id: 'facial_pigmentation',
           type: 'multi',
           label: 'Manchas pigmentares (melanina)',
-          options: ['Acromia', 'Efélides', 'Hipocromia', 'Melanose', 'Hipercromia', 'Melanose solar'],
+          options: ['Acromia', 'Efélides', 'Hipocromia', 'Melanose', 'Hipercromia', 'Melanose solar', 'Melasma'],
           other: true,
           wide: true,
         },
@@ -101,10 +133,35 @@ export const FACIAL_ASSESSMENT: Questionnaire = {
       ],
     },
     {
+      id: 'hyperpigmentation',
+      title: 'Hiperpigmentação',
+      description: 'Preencha quando houver manchas (melasma, melanose, hipercromia pós-inflamatória).',
+      questions: [
+        { id: 'facial_pigmentSites', type: 'multi', label: 'Localização', options: ['Frontal', 'Malar', 'Nasal', 'Lábio superior', 'Mentoniana', 'Mandibular', 'Temporal', 'Cervical'], wide: true },
+        { id: 'facial_pigmentPattern', type: 'choice', label: 'Padrão de distribuição', options: ['Centrofacial', 'Malar', 'Mandibular', 'Difuso'] },
+        { id: 'facial_pigmentSymmetry', type: 'choice', label: 'Simetria', options: ['Simétrica', 'Assimétrica'] },
+        {
+          id: 'facial_pigmentDepth',
+          type: 'choice',
+          label: 'Profundidade (lâmpada de Wood)',
+          hint: 'Epidérmica: o contraste se acentua sob a luz de Wood · dérmica: não se acentua · mista: acentua só em parte.',
+          options: ['Epidérmica', 'Dérmica', 'Mista'],
+        },
+        { id: 'facial_pigmentColor', type: 'choice', label: 'Coloração', options: ['Castanho-claro', 'Castanho-escuro', 'Acinzentado', 'Azulado'] },
+        { id: 'facial_pigmentIntensity', type: 'choice', label: 'Intensidade', options: ['Leve', 'Moderada', 'Intensa'] },
+        { id: 'facial_pigmentExtent', type: 'text', label: 'Extensão', placeholder: 'Ex.: cerca de 20% da face; placas de 3 × 4 cm nos malares', wide: true },
+        { id: 'facial_masi', type: 'number', label: 'Índice MASI', hint: 'De 0 a 48: área, escurecimento e homogeneidade.' },
+        { id: 'facial_pigmentOnset', type: 'text', label: 'Início e evolução' },
+        { id: 'facial_sensitivity', type: 'choice', label: 'Sensibilidade cutânea', options: ['Baixa', 'Moderada', 'Alta'] },
+        { id: 'facial_sensitivityNotes', type: 'text', label: 'Reações relatadas (ardência, vermelhidão, coceira)', wide: true },
+      ],
+    },
+    {
       id: 'notes',
       title: 'Observações',
       questions: [{ id: 'facial_notes', type: 'textarea', label: 'Observações', wide: true }],
     },
+    planSection('facial'),
   ],
 }
 
@@ -131,6 +188,8 @@ export const BODY_ASSESSMENT: Questionnaire = {
         { id: 'body_fatDistribution', type: 'choice', label: 'Distribuição de gordura', options: ['Localizada', 'Generalizada'] },
         { id: 'body_fatSite', type: 'text', label: 'Localização' },
         { id: 'body_biotype', type: 'choice', label: 'Biotipo', options: ['Ginoide', 'Androide', 'Normolíneo'] },
+        { id: 'body_inspection', type: 'textarea', label: 'Inspeção', placeholder: 'Forma, simetria, contorno, aspecto da pele, alterações visíveis', wide: true },
+        { id: 'body_palpation', type: 'textarea', label: 'Palpação', placeholder: 'Consistência, mobilidade, espessura do pinçamento, sensibilidade, temperatura', wide: true },
       ],
     },
     {
@@ -201,6 +260,7 @@ export const BODY_ASSESSMENT: Questionnaire = {
       title: 'Observações',
       questions: [{ id: 'body_notes', type: 'textarea', label: 'Observações', wide: true }],
     },
+    planSection('body'),
   ],
 }
 
@@ -273,6 +333,7 @@ export const HAIR_ASSESSMENT: Questionnaire = {
         { id: 'hair_finding', type: 'textarea', label: 'Alteração encontrada', wide: true },
       ],
     },
+    planSection('hair'),
   ],
 }
 
