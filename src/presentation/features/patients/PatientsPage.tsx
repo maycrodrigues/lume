@@ -1,6 +1,7 @@
-import { ChevronRight, ClipboardList, Plus, Search, Users } from 'lucide-react'
+import { ChevronRight, FileText, Plus, Search, UserPlus, Users } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
+import { isCaseStudyPatient } from '@/application'
 import { ageAt } from '@/domain'
 import { useServices } from '../../app/services'
 import { Avatar } from '../../components/ui/Avatar'
@@ -10,6 +11,7 @@ import { Card } from '../../components/ui/Card'
 import { EmptyState } from '../../components/ui/EmptyState'
 import { Input, Switch } from '../../components/ui/Field'
 import { PageHeader } from '../../components/ui/PageHeader'
+import { useToast } from '../../components/ui/Toast'
 import { useAction } from '../../hooks/useAction'
 import { useLiveQuery } from '../../hooks/useLiveQuery'
 import { formatDate, formatPhone } from '../../lib/format'
@@ -20,18 +22,37 @@ export function PatientsPage() {
   const navigate = useNavigate()
   const [search, setSearch] = useState('')
   const [includeInactive, setIncludeInactive] = useState(false)
+  const [caseStudiesOnly, setCaseStudiesOnly] = useState(false)
   const [creating, setCreating] = useState(false)
-  const [preparingStudy, setPreparingStudy] = useState(false)
+  const [preparingStudy, setPreparingStudy] = useState<'create' | 'report'>()
   const run = useAction()
-  const { data: patients, loading } = useLiveQuery(() => services.patients.list({ search, includeInactive }), [search, includeInactive])
+  const toast = useToast()
+  const { data: patients, loading } = useLiveQuery(() => services.patients.list({ search, includeInactive, caseStudiesOnly }), [search, includeInactive, caseStudiesOnly])
   const today = new Date()
 
-  /** Cria (ou reaproveita) as pacientes de teste do estudo de caso e abre o relatório para imprimir. */
-  async function openCaseStudy() {
-    setPreparingStudy(true)
+  /** Cadastra só as pacientes de estudo de caso que faltam; as demais pacientes não são tocadas. */
+  async function createCaseStudies() {
+    setPreparingStudy('create')
     const result = await run('caseStudy.create', () => services.caseStudies.createTestCases())
-    setPreparingStudy(false)
-    if (result.ok) navigate(`/admin/estudo-de-caso/imprimir?pares=${result.value.map((pair) => pair.join('.')).join(',')}`)
+    setPreparingStudy(undefined)
+    if (!result.ok) return
+    const { created, pairs } = result.value
+    const total = pairs.length * 2
+    toast.success(
+      created === 0 ? `As ${total} pacientes de estudo de caso já estavam cadastradas.`
+      : created === total ? `${created} pacientes de estudo de caso cadastradas. As demais pacientes foram mantidas.`
+      : `${created} pacientes de estudo de caso que faltavam foram cadastradas. As demais pacientes foram mantidas.`,
+    )
+    setSearch('')
+    setCaseStudiesOnly(true)
+  }
+
+  /** Abre o relatório comparativo para imprimir (cadastra antes as pacientes que faltarem). */
+  async function openCaseStudyReport() {
+    setPreparingStudy('report')
+    const result = await run('caseStudy.report', () => services.caseStudies.createTestCases())
+    setPreparingStudy(undefined)
+    if (result.ok) navigate(`/admin/estudo-de-caso/imprimir?pares=${result.value.pairs.map((pair) => pair.join('.')).join(',')}`)
   }
 
   return (
@@ -42,8 +63,11 @@ export function PatientsPage() {
         description="Cadastro, contato e acesso ao prontuário de cada paciente."
         actions={
           <>
-            <Button variant="secondary" icon={<ClipboardList className="size-4" strokeWidth={1.5} />} loading={preparingStudy} onClick={() => void openCaseStudy()}>
-              Estudo de caso
+            <Button variant="secondary" icon={<UserPlus className="size-4" strokeWidth={1.5} />} loading={preparingStudy === 'create'} disabled={Boolean(preparingStudy)} onClick={() => void createCaseStudies()}>
+              Criar estudos de caso
+            </Button>
+            <Button variant="secondary" icon={<FileText className="size-4" strokeWidth={1.5} />} loading={preparingStudy === 'report'} disabled={Boolean(preparingStudy)} onClick={() => void openCaseStudyReport()}>
+              Relatório do estudo
             </Button>
             <Button icon={<Plus className="size-4" />} onClick={() => setCreating(true)}>Nova paciente</Button>
           </>
@@ -56,15 +80,31 @@ export function PatientsPage() {
             <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-ink-muted" strokeWidth={1.5} />
             <Input className="pl-9" placeholder="Buscar por nome, e-mail, telefone ou CPF" value={search} onChange={(e) => setSearch(e.target.value)} aria-label="Buscar pacientes" />
           </div>
-          <Switch checked={includeInactive} onChange={setIncludeInactive} label="Mostrar arquivadas" />
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+            <Switch checked={caseStudiesOnly} onChange={setCaseStudiesOnly} label="Só estudos de caso" />
+            <Switch checked={includeInactive} onChange={setIncludeInactive} label="Mostrar arquivadas" />
+          </div>
         </div>
 
         {!loading && patients?.length === 0 ? (
           <EmptyState
             icon={<Users className="size-5" strokeWidth={1.5} />}
-            title={search ? 'Nenhuma paciente encontrada' : 'Nenhuma paciente cadastrada'}
-            description={search ? 'Tente buscar por outro termo.' : 'Cadastre a primeira paciente para começar a montar o prontuário.'}
-            action={!search && <Button icon={<Plus className="size-4" />} onClick={() => setCreating(true)}>Nova paciente</Button>}
+            title={search ? 'Nenhuma paciente encontrada' : caseStudiesOnly ? 'Nenhuma paciente de estudo de caso' : 'Nenhuma paciente cadastrada'}
+            description={
+              search ? 'Tente buscar por outro termo.'
+              : caseStudiesOnly ? 'Cadastre as 6 pacientes de teste dos estudos de caso. As pacientes que já existem são mantidas.'
+              : 'Cadastre a primeira paciente para começar a montar o prontuário.'
+            }
+            action={
+              !search &&
+              (caseStudiesOnly ? (
+                <Button variant="secondary" icon={<UserPlus className="size-4" strokeWidth={1.5} />} loading={preparingStudy === 'create'} onClick={() => void createCaseStudies()}>
+                  Criar estudos de caso
+                </Button>
+              ) : (
+                <Button icon={<Plus className="size-4" />} onClick={() => setCreating(true)}>Nova paciente</Button>
+              ))
+            }
           />
         ) : (
           <div className="overflow-x-auto">
@@ -87,7 +127,12 @@ export function PatientsPage() {
                         <Avatar name={p.name} size="sm" />
                         <div className="min-w-0">
                           <p className="truncate font-medium text-ink">{p.name}</p>
-                          {!p.active && <Badge tone="neutral" className="mt-0.5">Arquivada</Badge>}
+                          {(!p.active || isCaseStudyPatient(p)) && (
+                            <div className="mt-0.5 flex flex-wrap gap-1">
+                              {isCaseStudyPatient(p) && <Badge tone="lilac">Estudo de caso</Badge>}
+                              {!p.active && <Badge tone="neutral">Arquivada</Badge>}
+                            </div>
+                          )}
                         </div>
                       </div>
                     </td>

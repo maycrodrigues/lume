@@ -5,6 +5,11 @@ import type { AssessmentService } from './assessments'
 import type { ServiceDeps } from './deps'
 import type { PatientService } from './patients'
 
+/** Marca no cadastro das pacientes de teste; a chave do caso evita criá-las de novo. */
+export const CASE_STUDY_NOTE = 'Paciente de teste — estudo de caso'
+export const caseStudyNote = (key: string) => `${CASE_STUDY_NOTE} (${key}).`
+export const isCaseStudyPatient = (patient: Pick<Patient, 'notes'>) => Boolean(patient.notes?.startsWith(CASE_STUDY_NOTE))
+
 const ANAMNESIS_BY_TEMPLATE: Partial<Record<AssessmentTemplateId, string[]>> = {
   facial: [
     'complaint', 'complaintDuration', 'cosmetics', 'sunExposure', 'sunscreen', 'physicalActivity', 'waterIntake', 'medications',
@@ -59,14 +64,16 @@ function studyTitle(cases: CaseStudyCase[], fallback: string) {
 export function createCaseStudyService({ clock }: ServiceDeps, { patients, assessments }: { patients: PatientService; assessments: AssessmentService }) {
   return {
     /**
-     * Cria (ou reaproveita) as pacientes de teste dos estudos de caso, com anamnese e Ficha de avaliação
-     * preenchidas, e devolve os pares de fichas a comparar.
+     * Cadastra as pacientes de teste dos estudos de caso que ainda não existem, com anamnese e Ficha de
+     * avaliação preenchidas, sem tocar nas demais pacientes. Devolve os pares de fichas a comparar e
+     * quantas pacientes foram criadas agora.
      */
-    async createTestCases(): Promise<Array<[Id, Id]>> {
-      const { CASE_STUDIES, caseStudyNote } = await import('../caseStudyData')
+    async createTestCases(): Promise<{ pairs: Array<[Id, Id]>; created: number }> {
+      const { CASE_STUDIES } = await import('../caseStudyData')
       const today = toLocalISODate(clock.now())
       const existing = await patients.list({ includeInactive: true })
       const pairs: Array<[Id, Id]> = []
+      let created = 0
       for (const study of CASE_STUDIES) {
         const ids: Id[] = []
         for (const definition of study.cases) {
@@ -74,6 +81,7 @@ export function createCaseStudyService({ clock }: ServiceDeps, { patients, asses
           if (!patient) {
             patient = await patients.create({ ...definition.patient, notes: caseStudyNote(definition.key) })
             await patients.updateAnamnesis(patient.id, { ...definition.anamnesis, declarationDate: today })
+            created++
           }
           const [latest] = (await assessments.listByPatient(patient.id)).filter((a) => a.template === study.template)
           const assessment = latest ?? (await assessments.create({ patientId: patient.id, template: study.template, date: today, answers: definition.assessment }))
@@ -81,7 +89,7 @@ export function createCaseStudyService({ clock }: ServiceDeps, { patients, asses
         }
         pairs.push([ids[0], ids[1]])
       }
-      return pairs
+      return { pairs, created }
     },
 
     /** Relatório comparativo de pares de Fichas de avaliação do mesmo modelo, de pacientes diferentes. */

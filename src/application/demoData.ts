@@ -21,7 +21,8 @@ import type {
   ScheduleBlock,
 } from '@/domain'
 import { allQuestions, ANAMNESIS, ASSESSMENT_TEMPLATES, blockRange, cleanAnswers, CONSULTATION_CHARGE_CATEGORY, couponDiscount, DEFAULT_WORKING_HOURS, minutesOf, NUTRITION, packagePricing, SLOT_STEP_MINUTES } from '@/domain'
-import { CASE_STUDIES, caseStudyNote } from './caseStudyData'
+import { CASE_STUDIES } from './caseStudyData'
+import { caseStudyNote } from './services/caseStudies'
 import { addDaysISO, toLocalISODate } from './dates'
 import type { IdGenerator, Snapshot } from './ports'
 

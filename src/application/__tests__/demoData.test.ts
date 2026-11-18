@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest'
 import type { Appointment } from '@/domain'
 import { assertWithinWorkingHours, blockRange, cleanAnswers, collides, contractUsage, DEFAULT_WORKING_HOURS, isActiveAppointment, isValidCpf, NUTRITION } from '@/domain'
 import { toLocalISODate } from '../dates'
-import { CASE_STUDIES, caseStudyNote } from '../caseStudyData'
+import { CASE_STUDIES } from '../caseStudyData'
+import { caseStudyNote } from '../services/caseStudies'
 import { buildDemoSnapshot } from '../demoData'
 import { setup } from './setup'
 
@@ -81,7 +82,7 @@ describe('Dados de demonstração', () => {
     const { services } = setup('2026-10-10T11:00')
     await services.backup.loadDemoData()
     const before = (await services.patients.list()).length
-    const reports = await services.caseStudies.report(await services.caseStudies.createTestCases())
+    const reports = await services.caseStudies.report((await services.caseStudies.createTestCases()).pairs)
     expect(await services.patients.list()).toHaveLength(before)
     expect(reports.map((r) => r.title)).toEqual(['Hiperpigmentação facial', 'Lipodistrofia localizada', 'Queda capilar masculina'])
   })

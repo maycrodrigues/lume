@@ -770,7 +770,3 @@ export const CASE_STUDIES: CaseStudyDefinition[] = [
   { id: 'lipodistrofia', title: 'Lipodistrofia localizada', template: 'body', cases: [LIPO_COMPACT, LIPO_FLACCID] },
   { id: 'queda-capilar', title: 'Queda capilar masculina', template: 'hair', cases: [HAIR_ANDROGENETIC, HAIR_TELOGEN] },
 ]
-
-/** Marca no cadastro das pacientes de teste; a chave do caso evita criá-las de novo. */
-export const CASE_STUDY_NOTE = 'Paciente de teste — estudo de caso'
-export const caseStudyNote = (key: string) => `${CASE_STUDY_NOTE} (${key}).`
