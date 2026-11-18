@@ -1,6 +1,5 @@
 import { useSearchParams } from 'react-router'
 import type { CaseStudyReport } from '@/application'
-import { CASE_STUDY_ANAMNESIS } from '@/application'
 import type { Agreement, AnswerComparison, ClinicSettings, Questionnaire } from '@/domain'
 import { ageAt, pickQuestions } from '@/domain'
 import { useServices } from '../../app/services'
@@ -121,7 +120,7 @@ function Study({ report, index }: { report: CaseStudyReport; index: number }) {
             {CASE_LABELS[i]} — {patient.name}
           </p>
           <p className="mb-2 text-xs text-ink-muted">Anamnese: queixa, hábitos e histórico</p>
-          <QuestionnaireSummary questionnaire={CASE_STUDY_ANAMNESIS} answers={patient.anamnesis} gender={patient.gender} compact />
+          <QuestionnaireSummary questionnaire={report.anamnesis} answers={patient.anamnesis} gender={patient.gender} compact />
           <p className="mt-5 mb-2 text-xs text-ink-muted">{questionnaire.title}</p>
           <QuestionnaireSummary questionnaire={findings(questionnaire)} answers={assessment.answers} gender={patient.gender} compact />
         </div>

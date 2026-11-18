@@ -188,6 +188,8 @@ export const BODY_ASSESSMENT: Questionnaire = {
         { id: 'body_fatDistribution', type: 'choice', label: 'Distribuição de gordura', options: ['Localizada', 'Generalizada'] },
         { id: 'body_fatSite', type: 'text', label: 'Localização' },
         { id: 'body_biotype', type: 'choice', label: 'Biotipo', options: ['Ginoide', 'Androide', 'Normolíneo'] },
+        { id: 'body_inspection', type: 'textarea', label: 'Inspeção', placeholder: 'Forma, simetria, contorno, aspecto da pele, alterações visíveis', wide: true },
+        { id: 'body_palpation', type: 'textarea', label: 'Palpação', placeholder: 'Consistência, mobilidade, espessura do pinçamento, sensibilidade, temperatura', wide: true },
       ],
     },
     {
@@ -331,6 +333,7 @@ export const HAIR_ASSESSMENT: Questionnaire = {
         { id: 'hair_finding', type: 'textarea', label: 'Alteração encontrada', wide: true },
       ],
     },
+    planSection('hair'),
   ],
 }
 

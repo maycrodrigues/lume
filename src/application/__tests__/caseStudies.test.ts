@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { CASE_STUDIES } from '../caseStudyData'
-import { CASE_STUDY_NOTE } from '../services/caseStudies'
+import { CASE_STUDIES, CASE_STUDY_NOTE } from '../caseStudyData'
 import { setup } from './setup'
 
 describe('Estudo de caso', () => {
@@ -10,7 +9,7 @@ describe('Estudo de caso', () => {
 
     expect(pairs).toHaveLength(CASE_STUDIES.length)
     const patients = await services.patients.list()
-    expect(patients.filter((p) => p.notes?.startsWith(CASE_STUDY_NOTE))).toHaveLength(4)
+    expect(patients.filter((p) => p.notes?.startsWith(CASE_STUDY_NOTE))).toHaveLength(6)
 
     for (const [study, pair] of CASE_STUDIES.map((s, i) => [s, pairs[i]] as const)) {
       for (const [definition, id] of study.cases.map((c, i) => [c, pair[i]] as const)) {
@@ -30,12 +29,12 @@ describe('Estudo de caso', () => {
     const first = await services.caseStudies.createTestCases()
     const second = await services.caseStudies.createTestCases()
     expect(second).toEqual(first)
-    expect(await services.patients.list()).toHaveLength(4)
+    expect(await services.patients.list()).toHaveLength(6)
   })
 
   it('compara os achados das duas pacientes e aponta semelhanças e diferenças', async () => {
     const { services } = setup('2026-11-18T10:00')
-    const [melasma, lipo] = await services.caseStudies.report(await services.caseStudies.createTestCases())
+    const [melasma, lipo, hair] = await services.caseStudies.report(await services.caseStudies.createTestCases())
 
     expect(melasma.title).toBe('Hiperpigmentação facial')
     const row = (label: string) => melasma.comparison.find((c) => c.question.label === label)
@@ -48,6 +47,12 @@ describe('Estudo de caso', () => {
     expect(lipo.title).toBe('Lipodistrofia localizada')
     expect(lipo.comparison.find((c) => c.question.id === 'body_fatDistribution')?.agreement).toBe('same')
     expect(lipo.comparison.find((c) => c.question.id === 'body_fat')).toMatchObject({ values: ['Compacta', 'Flácida'] })
+    expect(lipo.comparison.some((c) => c.question.id === 'body_palpation')).toBe(true)
+    expect(lipo.anamnesis.sections.flatMap((s) => s.questions).some((q) => q.id === 'diet')).toBe(true)
+
+    expect(hair.title).toBe('Queda capilar masculina')
+    expect(hair.cases.every((c) => c.patient.gender === 'male')).toBe(true)
+    expect(hair.comparison.find((c) => c.question.id === 'hair_pattern')).toMatchObject({ values: ['Norwood III vértex', 'Norwood I'], agreement: 'different' })
   })
 
   it('recusa comparar fichas de modelos diferentes ou da mesma paciente', async () => {

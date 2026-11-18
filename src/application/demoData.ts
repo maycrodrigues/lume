@@ -20,7 +20,8 @@ import type {
   Procedure,
   ScheduleBlock,
 } from '@/domain'
-import { allQuestions, blockRange, CONSULTATION_CHARGE_CATEGORY, couponDiscount, DEFAULT_WORKING_HOURS, minutesOf, NUTRITION, packagePricing, SLOT_STEP_MINUTES } from '@/domain'
+import { allQuestions, ANAMNESIS, ASSESSMENT_TEMPLATES, blockRange, cleanAnswers, CONSULTATION_CHARGE_CATEGORY, couponDiscount, DEFAULT_WORKING_HOURS, minutesOf, NUTRITION, packagePricing, SLOT_STEP_MINUTES } from '@/domain'
+import { CASE_STUDIES, caseStudyNote } from './caseStudyData'
 import { addDaysISO, toLocalISODate } from './dates'
 import type { IdGenerator, Snapshot } from './ports'
 
@@ -580,6 +581,37 @@ export function buildDemoSnapshot(now: Date, newId: IdGenerator): Partial<Snapsh
       })
     }
   })
+
+  // ── Estudos de caso ─────────────────────────────────────────────────────
+  // Pares de pacientes com a mesma disfunção (melasma, lipodistrofia, queda capilar masculina), com
+  // anamnese e Ficha de avaliação completas. O botão "Estudo de caso" encontra estas pacientes pela marca no cadastro.
+  CASE_STUDIES.forEach((study, s) =>
+    study.cases.forEach((definition, c) => {
+      const createdAt = day(-40 + s * 6 + c * 2, 9, 30)
+      const evaluatedAt = day(-40 + s * 6 + c * 2, 10, 30)
+      const patient: Patient = {
+        id: newId(),
+        ...definition.patient,
+        notes: caseStudyNote(definition.key),
+        active: true,
+        anamnesis: cleanAnswers(ANAMNESIS, { ...definition.anamnesis, declarationDate: toLocalISODate(createdAt) }),
+        anamnesisUpdatedAt: createdAt.toISOString(),
+        nutrition: demoNutrition(nutritionFaker, definition.patient.gender),
+        nutritionUpdatedAt: createdAt.toISOString(),
+        imageConsent: { scope: 'clinical', date: toLocalISODate(createdAt) },
+        ...stamp(createdAt),
+      }
+      patients.push(patient)
+      assessments.push({
+        id: newId(),
+        patientId: patient.id,
+        template: study.template,
+        date: toLocalISODate(evaluatedAt),
+        answers: cleanAnswers(ASSESSMENT_TEMPLATES[study.template], definition.assessment),
+        ...stamp(evaluatedAt),
+      })
+    }),
+  )
 
   return {
     procedures,

@@ -1,5 +1,4 @@
-import type { Answers, AssessmentTemplateId } from '@/domain'
-import type { PatientInput } from './services/patients'
+import type { Answers, AssessmentTemplateId, Patient } from '@/domain'
 
 /*
  * Estudo de caso comparativo: duas pacientes de teste com a mesma disfunção estética, por estudo.
@@ -10,7 +9,7 @@ import type { PatientInput } from './services/patients'
 export interface CaseDefinition {
   /** Chave estável: identifica a paciente de teste para não duplicá-la. */
   key: string
-  patient: PatientInput
+  patient: Pick<Patient, 'name' | 'birthDate' | 'cpf' | 'gender' | 'maritalStatus' | 'phone' | 'email' | 'city' | 'state' | 'occupation' | 'referralSource'>
   anamnesis: Answers
   assessment: Answers
 }
@@ -33,6 +32,7 @@ const MELASMA_EPIDERMAL: CaseDefinition = {
     birthDate: '1993-04-12',
     gender: 'female',
     maritalStatus: 'single',
+    cpf: '41827390514',
     phone: '(11) 98123-4501',
     email: 'camila.teste@exemplo.com.br',
     city: 'São Paulo',
@@ -155,6 +155,7 @@ const MELASMA_MIXED: CaseDefinition = {
     birthDate: '1982-09-03',
     gender: 'female',
     maritalStatus: 'married',
+    cpf: '52738401635',
     phone: '(11) 98123-4502',
     email: 'renata.teste@exemplo.com.br',
     city: 'São Paulo',
@@ -279,6 +280,7 @@ const LIPO_COMPACT: CaseDefinition = {
     birthDate: '1996-02-20',
     gender: 'female',
     maritalStatus: 'stable_union',
+    cpf: '63940512761',
     phone: '(11) 98123-4503',
     email: 'bianca.teste@exemplo.com.br',
     city: 'São Paulo',
@@ -329,6 +331,8 @@ const LIPO_COMPACT: CaseDefinition = {
     body_fatDistribution: 'Localizada',
     body_fatSite: 'Abdômen infraumbilical e flancos',
     body_biotype: 'Androide',
+    body_inspection: 'Em pé: abaulamento abaixo do umbigo e nos flancos, simétrico; pele lisa, uniforme, sem estrias, sem celulite visível e sem ptose. Cintura pouco marcada para o quadril.',
+    body_palpation: 'Tecido firme e denso, pouco móvel sobre os planos profundos; pinçamento espesso e bem delimitado (prega abdominal de 30 mm); temperatura normal; sem dor e sem nódulos.',
     body_perimetry: {
       Cintura: { ref: 74 },
       Quadril: { ref: 98 },
@@ -393,6 +397,7 @@ const LIPO_FLACCID: CaseDefinition = {
     birthDate: '1975-06-14',
     gender: 'female',
     maritalStatus: 'married',
+    cpf: '74051623807',
     phone: '(11) 98123-4504',
     email: 'sandra.teste@exemplo.com.br',
     city: 'São Paulo',
@@ -443,6 +448,8 @@ const LIPO_FLACCID: CaseDefinition = {
     body_fatDistribution: 'Localizada',
     body_fatSite: 'Abdômen infraumbilical, culote e face interna das coxas',
     body_biotype: 'Ginoide',
+    body_inspection: 'Em pé: gordura que cede com a gravidade no abdômen inferior (avental discreto), culote e face interna das coxas; pele com ondulações e celulite visível em repouso nos glúteos; estrias albas; varizes na face posterior das coxas e nas pernas. Assimetria leve: coxa esquerda maior.',
+    body_palpation: 'Tecido mole e móvel, que se desloca com a mudança de postura; pinçamento largo e pouco delimitado; pele fina e pouco elástica (retorno lento ao soltar a prega); áreas frias e doloridas nos glúteos e coxas; cacifo discreto nos tornozelos.',
     body_hldgType: 'Edematosa',
     body_hldgGrade: 'II',
     body_hldgSite: 'Glúteos, culote e face posterior das coxas',
@@ -513,7 +520,257 @@ const LIPO_FLACCID: CaseDefinition = {
   },
 }
 
+const HAIR_ANDROGENETIC: CaseDefinition = {
+  key: 'queda-capilar-a',
+  patient: {
+    name: 'Lucas Ferreira Campos',
+    birthDate: '1999-07-08',
+    gender: 'male',
+    maritalStatus: 'single',
+    cpf: '85162734900',
+    phone: '(11) 98123-4505',
+    email: 'lucas.teste@exemplo.com.br',
+    city: 'São Paulo',
+    state: 'SP',
+    occupation: 'Desenvolvedor de software',
+    referralSource: 'Estudo de caso',
+  },
+  anamnesis: {
+    complaint: 'Entradas aumentando e cabelo mais ralo no topo da cabeça; couro cabeludo oleoso.',
+    complaintDuration: '3 anos',
+    goals: 'Frear a queda e recuperar densidade.',
+    cosmetics: yes('Xampu anticaspa e pomada modeladora diariamente'),
+    sunExposure: no,
+    sunscreen: no,
+    smoking: no,
+    alcohol: yes('Fins de semana'),
+    physicalActivity: yes('Musculação 4x por semana'),
+    waterIntake: '2 litros',
+    sleepHours: 6,
+    sleepQuality: 'Regular',
+    diet: 'Regular',
+    bowel: '1–2 vezes por dia',
+    favoriteFoods: 'Frango, arroz, ovos; usa whey protein.',
+    previousAesthetic: no,
+    plasticSurgery: no,
+    medicalTreatment: no,
+    allergies: no,
+    pacemaker: no,
+    bloodPressure: no,
+    diabetes: no,
+    hormonal: no,
+    stress: yes(),
+    observations: 'Pai e avô materno calvos. Já pensou em usar anabolizante, mas não usa.',
+    declarationConfirmed: true,
+  },
+  assessment: {
+    hair_washing: 'Diariamente, com água quente, no banho da manhã',
+    hair_cosmetics: 'Xampu anticaspa todos os dias e pomada modeladora; não usa condicionador.',
+    hair_familySame: yes('Pai (calvo desde os 30 anos) e avô materno'),
+    hair_familyBaldness: 'Padrão masculino: entradas e coroa',
+    hair_pattern: 'Norwood III vértex',
+    hair_chemical: no,
+    hair_uses: { values: ['Gel', 'Boné/chapéu'] },
+    hair_uniformDensity: no,
+    hair_uniformLength: yes(),
+    hair_scalp: { values: ['Oleosidade', 'Descamação', 'Prurido'] },
+    hair_presence: { values: ['Entradas', 'Retrações'] },
+    hair_presenceRegions: 'Recesso frontotemporal bilateral e rarefação no vértex',
+    hair_regrowth: yes(),
+    hair_feel: { values: ['Macios', 'Opacos'] },
+    hair_ends: 'Íntegras',
+    hair_findings: { values: [], other: 'Miniaturização: fios finos e curtos misturados aos grossos nas entradas e no vértex' },
+    hair_color: 'Castanha',
+    hair_natural: 'Natural',
+    hair_type: 'Oleoso',
+    hair_length: 'Curto',
+    hair_curl: 'Liso',
+    hair_thickness: 'Fino',
+    hair_density: 'Pouca',
+    hair_porosity: 'Pouco porosa',
+    hair_elasticity: 'Boa',
+    hair_notes: 'Teste de tração negativo (menos de 3 fios por mecha). Couro cabeludo com oleosidade e descamação amarelada fina no vértex, sem lesões abertas.',
+    hair_finding: 'Rarefação progressiva com miniaturização dos fios nas entradas e no vértex, em padrão masculino, com dermatite seborreica leve associada.',
+    hair_dysfunction: 'Queda capilar masculina — alopecia androgenética (Norwood III vértex) com dermatite seborreica leve',
+    hair_factors:
+      'Predisposição genética (pai e avô calvos) e ação da di-hidrotestosterona (DHT) nos folículos do topo e das entradas; idade de início típica (24 anos); oleosidade do couro cabeludo.',
+    hair_aggravants:
+      'Lavagem diária com água quente e xampu anticaspa sem pausa (efeito rebote na oleosidade); pomada modeladora acumulada no couro cabeludo; boné por muitas horas; estresse e sono curto; possível uso de anabolizantes, que aceleraria a queda.',
+    hair_contraindications:
+      'Microagulhamento: não aplicar sobre lesões abertas, foliculite ativa, infecção ou com uso de anticoagulantes; avaliar tendência a queloide. LED/laser de baixa potência: não usar com medicamentos fotossensibilizantes. Medicamentos para alopecia (finasterida, minoxidil oral) são de prescrição médica: encaminhar ao(à) dermatologista.',
+    hair_care:
+      'Lavar com água morna, em dias alternados ou diariamente se oleoso, com xampu suave; usar o anticaspa só 2x por semana; enxaguar bem a pomada; reduzir o tempo de boné; não usar anabolizantes; fotos padronizadas (frontal, vértex e laterais) a cada 60 dias.',
+    hair_interpretation:
+      'Queda progressiva e padronizada, com miniaturização nas entradas e no vértex, teste de tração negativo e forte histórico familiar: o quadro é de alopecia androgenética, não de queda difusa passageira. O fio não cai em excesso; ele fica mais fino a cada ciclo. A dermatite seborreica leve não causa a calvície, mas inflama o couro cabeludo e piora o ambiente do folículo. Os fios miniaturizados ainda presentes mostram que há folículos para estimular, e o objetivo é estabilizar e recuperar densidade enquanto eles existem.',
+    hair_goals:
+      '1. Controlar a oleosidade, a descamação e o prurido em 4 semanas.\n2. Estabilizar a progressão da calvície (sem avanço na escala de Norwood em 6 meses).\n3. Aumentar a espessura e a densidade dos fios nas entradas e no vértex (comparação por fotos em 4 e 6 meses).\n4. Encaminhar para avaliação médica do tratamento medicamentoso.',
+    hair_protocol: [
+      step(
+        'Higienização',
+        'Esfoliação e higienização profunda do couro cabeludo com argila verde e ativos seborreguladores',
+        '20 min, sem água quente',
+        '1 por semana nas 4 primeiras sessões, depois a cada 15 dias',
+        'A oleosidade, a descamação e o resíduo de pomada inflamam o couro cabeludo; limpá-lo melhora o ambiente do folículo e a absorção dos ativos das próximas etapas.',
+      ),
+      step(
+        'Estímulo folicular',
+        'Microagulhamento capilar com drug delivery de fatores de crescimento e peptídeos',
+        'Agulhas de 0,5 a 1 mm, nas entradas e no vértex',
+        '6 sessões, a cada 21 dias',
+        'Há miniaturização com folículos ainda ativos: o microagulhamento estimula o folículo e a circulação local e aumenta a entrada dos ativos, indicado para alopecia androgenética.',
+      ),
+      step(
+        'Fotobiomodulação',
+        'LED vermelho (630 a 660 nm)',
+        '15 min, com o couro cabeludo limpo',
+        '1 por semana, intercalado com o microagulhamento',
+        'Prolonga a fase de crescimento dos fios e reduz a inflamação, sem aquecer nem agredir o couro cabeludo.',
+      ),
+      step(
+        'Home care',
+        'Xampu suave diário, anticaspa 2x por semana e tônico capilar com cafeína e ativos seborreguladores',
+        'Tônico à noite, com massagem de 2 min',
+        'Contínuo',
+        'Mantém a oleosidade controlada entre as sessões e prolonga o estímulo ao folículo.',
+      ),
+      step(
+        'Encaminhamento',
+        'Dermatologista',
+        '—',
+        'No início do tratamento',
+        'Na alopecia androgenética, o bloqueio da DHT (medicamentoso, de prescrição médica) é o que mais interfere na progressão; o tratamento estético potencializa e não substitui essa conduta.',
+      ),
+    ],
+  },
+}
+
+const HAIR_TELOGEN: CaseDefinition = {
+  key: 'queda-capilar-b',
+  patient: {
+    name: 'Marcos Vinícius Teixeira',
+    birthDate: '1987-11-22',
+    gender: 'male',
+    maritalStatus: 'married',
+    cpf: '96273845000',
+    phone: '(11) 98123-4506',
+    email: 'marcos.teste@exemplo.com.br',
+    city: 'São Paulo',
+    state: 'SP',
+    occupation: 'Gerente comercial',
+    referralSource: 'Estudo de caso',
+  },
+  anamnesis: {
+    complaint: 'Cabelo caindo muito no banho e no travesseiro, em todo o couro cabeludo, há cerca de 2 meses.',
+    complaintDuration: '2 meses',
+    goals: 'Parar a queda e recuperar o volume.',
+    cosmetics: yes('Xampu comum'),
+    sunExposure: no,
+    sunscreen: no,
+    smoking: no,
+    alcohol: no,
+    physicalActivity: yes('Corrida 3x por semana'),
+    waterIntake: '1,5 litro',
+    sleepHours: 5,
+    sleepQuality: 'Péssima',
+    diet: 'Péssima',
+    bowel: '3–4 vezes por semana',
+    favoriteFoods: 'Fez dieta muito restritiva (cerca de 1.000 kcal, quase sem carne) por 3 meses; perdeu 12 kg.',
+    previousAesthetic: no,
+    plasticSurgery: no,
+    medicalTreatment: no,
+    otherDiseases: yes('Pneumonia com internação há 4 meses, já curada'),
+    allergies: no,
+    pacemaker: no,
+    bloodPressure: no,
+    diabetes: no,
+    hormonal: no,
+    stress: yes(),
+    observations: 'Mudança de emprego e mudança de cidade no mesmo período.',
+    declarationConfirmed: true,
+  },
+  assessment: {
+    hair_washing: 'Diariamente, água morna',
+    hair_cosmetics: 'Xampu comum de supermercado; nenhum tratamento.',
+    hair_preceding: { values: ['Fez dietas', 'Emagreceu', 'Teve crise emocional'] },
+    hair_familySame: no,
+    hair_familyBaldness: 'Não há calvície na família',
+    hair_pattern: 'Norwood I',
+    hair_chemical: no,
+    hair_uniformDensity: yes(),
+    hair_uniformLength: yes(),
+    hair_regrowth: yes(),
+    hair_feel: { values: ['Ásperos', 'Opacos'] },
+    hair_ends: 'Quebradiças',
+    hair_findings: { values: [], other: 'Fios caídos com bulbo branco (telógenos), de espessura normal' },
+    hair_color: 'Preta',
+    hair_natural: 'Natural',
+    hair_type: 'Seco',
+    hair_length: 'Curto',
+    hair_curl: 'Ondulado',
+    hair_thickness: 'Médio',
+    hair_density: 'Média',
+    hair_porosity: 'Porosa',
+    hair_elasticity: 'Média',
+    hair_notes: 'Teste de tração positivo em todas as regiões (6 a 8 fios por mecha). Couro cabeludo saudável, sem oleosidade, descamação ou vermelhidão. Sem áreas de falha. Fios novos e curtos visíveis na linha frontal.',
+    hair_finding: 'Queda difusa e aguda, com teste de tração positivo em todo o couro cabeludo, fios de espessura normal e rebrota visível, iniciada 2 a 3 meses após dieta restritiva, emagrecimento rápido, doença febril e estresse.',
+    hair_dysfunction: 'Queda capilar masculina — eflúvio telógeno agudo difuso',
+    hair_factors:
+      'Dieta muito restritiva com baixa ingestão de proteína e ferro, emagrecimento de 12 kg em 3 meses, pneumonia com internação há 4 meses e estresse intenso: esses gatilhos levam muitos fios a entrar ao mesmo tempo na fase de queda, que aparece 2 a 3 meses depois.',
+    hair_aggravants: 'Continuação da restrição alimentar, sono curto e de má qualidade (5 h) e estresse mantido; possíveis deficiências de ferro, zinco e vitamina D ainda não investigadas.',
+    hair_contraindications:
+      'Sem contraindicação aos recursos estéticos propostos. Precauções: suplementação e exames (hemograma, ferritina, vitamina D, zinco, tireoide) dependem de avaliação médica ou nutricional: encaminhar. Microagulhamento não é prioridade: em queda aguda, o estímulo mecânico não trata a causa.',
+    hair_care:
+      'Encaminhar para exames e para nutricionista; não fazer nova dieta restritiva; dormir 7 a 8 h; manusear o cabelo com delicadeza (sem secador quente, sem pentear molhado com força); explicar que a queda tende a parar sozinha quando a causa é corrigida; fotos e teste de tração a cada 30 dias.',
+    hair_interpretation:
+      'Queda difusa, de início agudo, com teste de tração positivo em todo o couro cabeludo, fios de espessura normal, sem miniaturização, sem padrão de calvície e sem histórico familiar: o quadro é de eflúvio telógeno, causado pelos gatilhos de 2 a 4 meses antes (dieta, emagrecimento, doença, estresse). A rebrota já visível mostra folículos preservados. É um quadro reversível: o foco é corrigir a causa e apoiar o couro cabeludo e o fio durante a recuperação, sem procedimentos agressivos.',
+    hair_goals:
+      '1. Identificar e corrigir as deficiências com apoio médico e nutricional.\n2. Reduzir a queda até teste de tração negativo em 8 a 12 semanas.\n3. Fortalecer a haste e reduzir a quebra (pontas quebradiças, fios ásperos).\n4. Acompanhar a rebrota até recuperar o volume em 6 meses.',
+    hair_protocol: [
+      step(
+        'Causa',
+        'Encaminhamento médico e nutricional',
+        'Exames: hemograma, ferritina, vitamina D, zinco, TSH',
+        'No início do tratamento',
+        'No eflúvio telógeno, a queda só para quando o gatilho é corrigido; a dieta restritiva e o emagrecimento rápido sugerem deficiência de nutrientes.',
+      ),
+      step(
+        'Fotobiomodulação',
+        'LED vermelho (630 a 660 nm)',
+        '15 min',
+        '1 por semana, 10 sessões',
+        'Estimula a volta dos folículos à fase de crescimento e melhora a circulação local sem agredir o couro cabeludo, que está saudável.',
+      ),
+      step(
+        'Couro cabeludo',
+        'Massagem capilar com loção de aminoácidos, cafeína e extratos vegetais',
+        '15 min, com o LED na mesma sessão',
+        '1 por semana, 10 sessões',
+        'Aumenta a circulação e entrega ativos ao folículo, acelerando a rebrota já iniciada.',
+      ),
+      step(
+        'Haste',
+        'Hidratação e reconstrução dos fios',
+        'Máscara de queratina e ceramidas, 20 min',
+        'A cada 15 dias',
+        'Os fios ásperos, porosos e com pontas quebradiças precisam de reposição de proteína e lipídios para reduzir a quebra, que piora a sensação de queda.',
+      ),
+      step(
+        'Home care',
+        'Xampu suave, condicionador e tônico capilar com aminoácidos',
+        'Tônico diário com massagem',
+        'Contínuo',
+        'Mantém o estímulo entre as sessões. O microagulhamento não foi escolhido: em queda aguda e reversível, ele não trata a causa e acrescentaria agressão sem benefício.',
+      ),
+    ],
+  },
+}
+
 export const CASE_STUDIES: CaseStudyDefinition[] = [
   { id: 'melasma', title: 'Hiperpigmentação facial — melasma', template: 'facial', cases: [MELASMA_EPIDERMAL, MELASMA_MIXED] },
   { id: 'lipodistrofia', title: 'Lipodistrofia localizada', template: 'body', cases: [LIPO_COMPACT, LIPO_FLACCID] },
+  { id: 'queda-capilar', title: 'Queda capilar masculina', template: 'hair', cases: [HAIR_ANDROGENETIC, HAIR_TELOGEN] },
 ]
+
+/** Marca no cadastro das pacientes de teste; a chave do caso evita criá-las de novo. */
+export const CASE_STUDY_NOTE = 'Paciente de teste — estudo de caso'
+export const caseStudyNote = (key: string) => `${CASE_STUDY_NOTE} (${key}).`
