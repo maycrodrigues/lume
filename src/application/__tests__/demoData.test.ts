@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Appointment } from '@/domain'
-import { assertWithinWorkingHours, blockRange, collides, contractUsage, DEFAULT_WORKING_HOURS, isActiveAppointment, isValidCpf } from '@/domain'
+import { assertWithinWorkingHours, blockRange, cleanAnswers, collides, contractUsage, DEFAULT_WORKING_HOURS, isActiveAppointment, isValidCpf, NUTRITION } from '@/domain'
 import { toLocalISODate } from '../dates'
 import { buildDemoSnapshot } from '../demoData'
 import { setup } from './setup'
@@ -53,6 +53,14 @@ describe('Dados de demonstração', () => {
     for (const a of appointments) {
       const patient = patients.find((p) => p.id === a.patientId)!
       expect(patient.createdAt <= a.start).toBe(true)
+    }
+  })
+
+  it('preenche a ficha Nutricional de cada paciente só com respostas válidas para o modelo', () => {
+    for (const patient of snapshot.patients!) {
+      expect(patient.nutrition).toBeDefined()
+      expect(cleanAnswers(NUTRITION, patient.nutrition!)).toEqual(patient.nutrition)
+      expect('nutrition_cycleIrregular' in patient.nutrition!).toBe(patient.gender === 'female')
     }
   })
 

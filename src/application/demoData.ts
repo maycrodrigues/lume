@@ -20,7 +20,7 @@ import type {
   Procedure,
   ScheduleBlock,
 } from '@/domain'
-import { blockRange, CONSULTATION_CHARGE_CATEGORY, couponDiscount, DEFAULT_WORKING_HOURS, minutesOf, packagePricing, SLOT_STEP_MINUTES } from '@/domain'
+import { allQuestions, blockRange, CONSULTATION_CHARGE_CATEGORY, couponDiscount, DEFAULT_WORKING_HOURS, minutesOf, NUTRITION, packagePricing, SLOT_STEP_MINUTES } from '@/domain'
 import { addDaysISO, toLocalISODate } from './dates'
 import type { IdGenerator, Snapshot } from './ports'
 
@@ -115,6 +115,9 @@ const emailPart = (s: string) =>
 export function buildDemoSnapshot(now: Date, newId: IdGenerator): Partial<Snapshot> {
   const faker = new Faker({ locale: [pt_BR, en, base] })
   faker.seed(20261010)
+  // Gerador próprio para a ficha Nutricional: não altera a sequência dos demais dados de demonstração.
+  const nutritionFaker = new Faker({ locale: [pt_BR, en, base] })
+  nutritionFaker.seed(20261111)
   const pick = <T>(list: readonly T[]) => faker.helpers.arrayElement(list)
   const chance = (probability: number) => faker.datatype.boolean({ probability })
   const day = (offset: number, hour = 0, minute = 0) => new Date(now.getFullYear(), now.getMonth(), now.getDate() + offset, hour, minute)
@@ -191,6 +194,8 @@ export function buildDemoSnapshot(now: Date, newId: IdGenerator): Partial<Snapsh
       active: true,
       anamnesis: demoAnamnesis(faker, gender, registeredOn),
       anamnesisUpdatedAt: createdAt.toISOString(),
+      nutrition: demoNutrition(nutritionFaker, gender),
+      nutritionUpdatedAt: createdAt.toISOString(),
       imageConsent: chance(0.85) ? { scope: chance(0.75) ? 'clinical' : 'clinical_and_marketing', date: registeredOn } : undefined,
       ...stamp(createdAt),
     }
@@ -628,6 +633,141 @@ function demoAnamnesis(faker: Faker, gender: Gender, declarationDate: string): A
   }
   if (faker.datatype.boolean({ probability: 0.35 })) {
     answers.medications = [{ name: pick(['Levotiroxina 50mcg', 'Losartana 50mg', 'Anticoncepcional oral', 'Vitamina D 2.000 UI']), dose: '1 comprimido ao dia', duration: pick(['6 meses', '2 anos', '5 anos']) }]
+  }
+  return answers
+}
+
+/** Opções da ficha Nutricional lidas do próprio modelo, para os dados demo não saírem do que o formulário aceita. */
+const nutritionQuestion = (id: string) => allQuestions(NUTRITION).find((q) => q.id === id)!
+const NUTRITION_OPTIONS = {
+  bristol: (nutritionQuestion('nutrition_bristol') as { options: string[] }).options,
+  urineColor: (nutritionQuestion('nutrition_urineColor') as { options: string[] }).options,
+  foods: (nutritionQuestion('nutrition_foodFrequency') as { rows: string[] }).rows,
+}
+
+const MEALS: Record<string, { time: string[]; place: string[]; foods: string[] }> = {
+  'Café da manhã': {
+    time: ['06:30', '07:00', '07:30', '08:00'],
+    place: ['Casa'],
+    foods: ['Pão francês com manteiga e café com leite', '2 ovos mexidos, 1 fatia de pão integral e café', 'Iogurte natural com granola e banana', 'Tapioca com queijo branco e café preto', 'Só café preto'],
+  },
+  'Lanche da manhã': {
+    time: ['10:00', '10:30'],
+    place: ['Trabalho', 'Casa'],
+    foods: ['1 maçã', 'Barra de cereal', 'Castanhas (1 punhado)', 'Café com biscoito'],
+  },
+  Almoço: {
+    time: ['12:00', '12:30', '13:00'],
+    place: ['Restaurante por quilo', 'Casa', 'Trabalho (marmita)'],
+    foods: ['Arroz, feijão, frango grelhado e salada', 'Arroz integral, lentilha, peixe e legumes', 'Macarrão com carne moída e salada', 'Prato feito com bife, arroz, feijão e batata frita'],
+  },
+  'Lanche da tarde': {
+    time: ['15:30', '16:00', '16:30'],
+    place: ['Trabalho', 'Casa'],
+    foods: ['Pão de queijo e café', 'Iogurte com fruta', 'Chocolate (2 quadradinhos)', 'Biscoito recheado'],
+  },
+  Jantar: {
+    time: ['19:30', '20:00', '21:00'],
+    place: ['Casa'],
+    foods: ['Sopa de legumes', 'Omelete com salada', 'Sanduíche natural', 'Repete o almoço', 'Pizza ou lanche (delivery)'],
+  },
+  Ceia: {
+    time: ['22:30', '23:00'],
+    place: ['Casa'],
+    foods: ['Chá de camomila', 'Leite morno', '1 fruta'],
+  },
+}
+
+/** Ficha de Anamnese Nutricional coerente com o gênero; só usa respostas válidas para o modelo `NUTRITION`. */
+function demoNutrition(faker: Faker, gender: Gender): Answers {
+  const pick = <T>(list: readonly T[]) => faker.helpers.arrayElement(list)
+  const chance = (probability: number) => faker.datatype.boolean({ probability })
+  const yesNo = (probability: number, detail?: () => string) => (chance(probability) ? { yes: true, ...(detail ? { detail: detail() } : {}) } : { yes: false })
+  const score = (max: number) => String(faker.number.int({ min: 1, max }))
+  const symptoms = (rows: string[], probability: number) => {
+    const grid: Record<string, Record<string, string>> = {}
+    for (const row of rows) if (chance(probability)) grid[row] = { score: score(5) }
+    return grid
+  }
+  const symptomGrids = NUTRITION.sections
+    .filter((s) => s.audience !== 'female' || gender === 'female')
+    .flatMap((s) => s.questions)
+    .filter((q) => q.type === 'grid' && q.columns[0]?.id === 'score')
+
+  const answers: Answers = {
+    nutrition_goals: pick(['Emagrecer com saúde e sem dietas restritivas', 'Melhorar a disposição e o funcionamento intestinal', 'Reduzir o inchaço e a retenção de líquidos', 'Melhorar a pele e os cabelos pela alimentação', 'Ganhar massa magra']),
+    nutrition_medicalReferral: yesNo(0.25, () => pick(['Dra. Helena (endocrinologista)', 'Dr. Paulo (gastroenterologista)', 'Dermatologista'])),
+    nutrition_previousNutritionist: yesNo(0.45, () => pick(['Manter a dieta nos fins de semana', 'Dieta muito restritiva', 'Falta de tempo para preparar as refeições'])),
+    nutrition_difficulties: pick(['Falta de tempo para cozinhar', 'Ansiedade e vontade de doces à tarde', 'Come fora com frequência por causa do trabalho', 'Não sabe montar refeições equilibradas']),
+    nutrition_expectations: pick(['Com um plano simples e possível de seguir', 'Com acompanhamento próximo e ajustes frequentes', 'Ensinando a fazer escolhas melhores no dia a dia']),
+    nutrition_commitment: String(faker.number.int({ min: 6, max: 10 })),
+    nutrition_healthInsurance: pick(['Não possui', 'Bradesco Saúde', 'SulAmérica', 'Amil', 'Unimed']),
+    nutrition_education: pick(['Ensino médio completo', 'Superior completo', 'Pós-graduação']),
+    nutrition_familyHistory: pick(['Pai hipertenso; mãe com diabetes tipo 2', 'Avó com hipotireoidismo', 'Sem antecedentes relevantes', 'Mãe com colesterol alto']),
+    nutrition_qualityOfLife: String(faker.number.int({ min: 2, max: 5 })),
+    nutrition_appearance: String(faker.number.int({ min: 2, max: 4 })),
+    nutrition_selfCare: faker.number.int({ min: 0, max: 3 }),
+    nutrition_training: pick(['Bem disposta', 'Cansa rápido', 'Não pratica, pretende começar caminhada', 'Sente fome logo após o treino']),
+    nutrition_substances: { yes: false },
+    nutrition_foodAllergy: yesNo(0.08, () => pick(['Camarão', 'Amendoim'])),
+    nutrition_foodIntolerance: yesNo(0.2, () => pick(['Lactose', 'Glúten (sensibilidade)'])),
+    nutrition_celiac: yesNo(0.02),
+    nutrition_diet: faker.helpers.weightedArrayElement([
+      { value: 'Onívoro', weight: 8 },
+      { value: 'Vegetariano', weight: 2 },
+      { value: 'Vegano', weight: 1 },
+    ]),
+    nutrition_dislikedFoods: pick(['Fígado e jiló', 'Quiabo', 'Peixe', 'Beterraba e berinjela']),
+    nutrition_bristol: pick(NUTRITION_OPTIONS.bristol.slice(1, 6)),
+    nutrition_urineColor: pick(NUTRITION_OPTIONS.urineColor.slice(0, 3)),
+    nutrition_recall: Object.fromEntries(
+      Object.entries(MEALS)
+        .filter(([meal]) => !['Lanche da manhã', 'Ceia'].includes(meal) || chance(0.5))
+        .map(([meal, options]) => [meal, { time: pick(options.time), place: pick(options.place), foods: pick(options.foods) }]),
+    ),
+    nutrition_snacking: pick(['Bolachas e café no trabalho', 'Frutas', 'Doces depois do almoço', 'Não belisca']),
+    nutrition_weekends: pick(['Pizza ou hambúrguer no sábado', 'Almoço em família, com mais massas e sobremesa', 'Pula o café da manhã e come mais à noite']),
+    nutrition_fats: pick(['Azeite e óleo de soja', 'Azeite', 'Manteiga e óleo de soja']),
+    nutrition_seasonings: pick(['Alho, cebola e sal', 'Temperos prontos e sal', 'Ervas frescas, alho e cebola']),
+    nutrition_shopping: pick(['Supermercado', 'Feira e supermercado', 'Aplicativo de entrega']),
+    nutrition_foodBudget: pick(['R$ 600 por mês', 'R$ 900 por mês', 'R$ 1.200 por mês']),
+    nutrition_eatingOut: pick(['1 vez por semana', '2 a 3 vezes por semana', 'Todos os dias úteis']),
+    nutrition_breadSpread: pick(['Manteiga', 'Requeijão', 'Queijo branco', 'Não come pão']),
+    nutrition_mealCompany: pick(['Família', 'Sozinho(a)', 'Colegas de trabalho']),
+    nutrition_hungriestTime: pick(['Final da tarde', 'À noite', 'Hora do almoço']),
+    nutrition_cravingTime: pick(['Depois do almoço', 'Por volta das 16h', 'À noite, vendo TV']),
+    nutrition_eatingPace: pick(['Come rápido e mastiga pouco', 'Come devagar e percebe a saciedade', 'Só percebe que exagerou depois']),
+    nutrition_emotionalEating: yesNo(0.5, () => pick(['Ansiedade no trabalho', 'Tédio à noite', 'Estresse'])),
+    nutrition_guilt: yesNo(0.35),
+    nutrition_distractedEating: yesNo(0.6),
+    nutrition_restriction: yesNo(0.3, () => pick(['Carboidratos', 'Glúten', 'Doces'])),
+    nutrition_foodFrequency: Object.fromEntries(
+      NUTRITION_OPTIONS.foods.map((food) => [
+        food,
+        {
+          frequency: faker.helpers.weightedArrayElement([
+            { value: 'Diário', weight: 3 },
+            { value: 'Semanal', weight: 4 },
+            { value: 'Mensal', weight: 2 },
+            { value: 'Esporádico', weight: 2 },
+            { value: 'Nunca', weight: 1 },
+          ]),
+        },
+      ]),
+    ),
+    nutrition_usualWeight: faker.number.int(gender === 'female' ? { min: 52, max: 85 } : { min: 68, max: 98 }),
+    nutrition_diagnosis: pick(['Consumo baixo de fibras e alto de ultraprocessados', 'Alimentação desorganizada, com longos jejuns e compensação à noite', 'Ingestão proteica abaixo do recomendado', 'Padrão alimentar adequado, com excesso de açúcar nos lanches']),
+    nutrition_conduct: pick(['Organizar horários das refeições e incluir proteína no café da manhã', 'Aumentar verduras, legumes e água; reduzir ultraprocessados', 'Trocar lanches doces por opções com fibras e proteína']),
+    nutrition_plan: pick(['Plano alimentar com 5 refeições; retorno em 30 dias', 'Cardápio semanal com lista de compras; retorno em 21 dias', 'Metas graduais por semana; reavaliar em 30 dias']),
+  }
+  for (const grid of symptomGrids) {
+    const rows = grid.type === 'grid' ? grid.rows : []
+    const filled = symptoms(rows, 0.25)
+    if (Object.keys(filled).length) answers[grid.id] = filled
+  }
+  if (gender === 'female') answers.nutrition_cycleIrregular = yesNo(0.25, () => pick(['Cólicas fortes', 'Ciclos de 40 dias', 'Fluxo intenso']))
+  if (chance(0.3)) {
+    answers.nutrition_supplements = [{ name: pick(['Vitamina D', 'Ômega 3', 'Colágeno', 'Whey protein', 'Magnésio']), reason: pick(['Deficiência em exame', 'Pele e articulações', 'Ganho de massa']), prescriber: pick(['Médico', 'Por conta própria']) }]
   }
   return answers
 }
