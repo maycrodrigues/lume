@@ -597,7 +597,7 @@ export function buildDemoSnapshot(now: Date, newId: IdGenerator): Partial<Snapsh
         active: true,
         anamnesis: cleanAnswers(ANAMNESIS, { ...definition.anamnesis, declarationDate: toLocalISODate(createdAt) }),
         anamnesisUpdatedAt: createdAt.toISOString(),
-        nutrition: demoNutrition(nutritionFaker, definition.patient.gender),
+        nutrition: cleanAnswers(NUTRITION, definition.nutrition),
         nutritionUpdatedAt: createdAt.toISOString(),
         imageConsent: { scope: 'clinical', date: toLocalISODate(createdAt) },
         ...stamp(createdAt),

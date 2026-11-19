@@ -36,13 +36,15 @@ export function PatientsPage() {
     const result = await run('caseStudy.create', () => services.caseStudies.createTestCases())
     setPreparingStudy(undefined)
     if (!result.ok) return
-    const { created, pairs } = result.value
+    const { created, completed, pairs } = result.value
     const total = pairs.length * 2
-    toast.success(
-      created === 0 ? `As ${total} pacientes de estudo de caso já estavam cadastradas.`
-      : created === total ? `${created} pacientes de estudo de caso cadastradas. As demais pacientes foram mantidas.`
-      : `${created} pacientes de estudo de caso que faltavam foram cadastradas. As demais pacientes foram mantidas.`,
-    )
+    const done = [
+      created === total ? `${created} pacientes de estudo de caso cadastradas.`
+      : created > 0 ? `${created} pacientes de estudo de caso que faltavam foram cadastradas.`
+      : '',
+      completed > 0 ? `Fichas de ${completed} ${completed === 1 ? 'paciente completadas' : 'pacientes completadas'}.` : '',
+    ].filter(Boolean)
+    toast.success(done.length ? `${done.join(' ')} As demais pacientes foram mantidas.` : `As ${total} pacientes de estudo de caso já estavam cadastradas e completas.`)
     setSearch('')
     setCaseStudiesOnly(true)
   }
