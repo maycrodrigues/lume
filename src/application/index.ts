@@ -82,7 +82,7 @@ export type { RegisterConsultationInput, UpdateConsultationInput } from './servi
 export type { DashboardOverview } from './services/dashboard'
 export type { EntryInput, FinancialEntryView, MonthPoint, MonthSummary } from './services/finance'
 export type { MedicalRecord, PerformedProcedureRecord } from './services/medicalRecords'
-export type { AnamnesisInput, PatientInput } from './services/patients'
+export type { AnamnesisInput, PatientHistory, PatientInput } from './services/patients'
 export type { PrescriptionInput, PrintablePrescription } from './services/prescriptions'
 export type { ProcedureInput } from './services/procedures'
 export type { BlockInput, DayAvailability } from './services/schedule'

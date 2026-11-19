@@ -151,10 +151,10 @@ Tipos disponíveis: `text`, `textarea`, `number`, `date`, `check`, `yesno` (com 
 - Agendamento dura a soma das durações dos procedimentos e só é aceito **dentro do horário de atendimento** do dia (Configurações → Horário de atendimento; padrão seg–sex 10h–17h, sáb 12h–16h, domingo fechado), fora de **bloqueios de agenda** e sem **conflito**: não há sobreposição e há um intervalo obrigatório (padrão 15 min) entre pacientes diferentes. Não existe "agendar mesmo assim". O formulário mostra só os horários livres para a duração escolhida.
 - Agendamento só fica **Realizado** ao registrar o Atendimento. O registro cria, numa única transação: o atendimento, a prescrição (opcional), a cobrança no financeiro (opcional) e conclui o agendamento.
 - O histórico guarda nome e valor cobrados de cada procedimento — mudar o catálogo não altera o prontuário.
-- Paciente com histórico clínico ou financeiro não pode ser excluída, apenas arquivada.
+- Paciente com histórico clínico ou financeiro pode ser **arquivada** (some das listas e da agenda, com o prontuário mantido) ou **excluída junto com todo o histórico**: agendamentos, atendimentos, prescrições, fichas, fotos, pacotes, cupons e lançamentos, inclusive os pagos. A exclusão completa pede para digitar EXCLUIR, acontece numa única transação e deixa cópia de cada registro em Registros.
 - Excluir um atendimento reabre o agendamento, remove a cobrança pendente (a paga é mantida) e preserva prescrições, fichas e fotos.
 - O nº da sessão é sugerido a partir de quantas vezes o procedimento já foi realizado na paciente.
-- Paciente com fotos ou fichas também conta como "com histórico" (só pode ser arquivada).
+- Paciente com fotos ou fichas também conta como "com histórico" (só sai pela exclusão completa).
 - **Pacotes**: contratar congela itens e valores, lança a cobrança ("Pacotes") e define a validade. No atendimento, a linha que usa sessão do pacote não é cobrada; sem saldo, pacote vencido ou cancelado, o registro é recusado. Ver [ADR 0004](docs/adr/0004-saldos-e-validades-sao-calculados.md).
 - **Cupons**: cada envio gera um código pessoal de uso único (`LUME-XXXXXX`), válido por N dias (padrão 30) a partir do envio. A validação presencial é na página Cupons; o uso acontece no registro do atendimento e desconta só procedimentos avulsos — nunca pacotes nem sessões de pacote. Excluir o atendimento libera o cupom.
 

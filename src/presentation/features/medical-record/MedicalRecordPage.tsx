@@ -1,7 +1,7 @@
 import { Archive, ArchiveRestore, ArrowLeft, CalendarPlus, ClipboardPen, FilePlus2, Mail, Pencil, Phone, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
-import type { AppointmentView } from '@/application'
+import type { AppointmentView, PatientHistory } from '@/application'
 import type { Assessment, AssessmentTemplateId, Consultation, Photo, Prescription } from '@/domain'
 import { ageAt } from '@/domain'
 import { useServices } from '../../app/services'
@@ -42,6 +42,18 @@ function Stat({ label, value }: { label: string; value: string }) {
   )
 }
 
+/** O que a exclusão completa apaga, na ordem em que aparece na confirmação: [tipo, singular, plural]. */
+const HISTORY_LABELS: Array<[keyof PatientHistory, string, string]> = [
+  ['appointments', 'agendamento', 'agendamentos'],
+  ['consultations', 'atendimento', 'atendimentos'],
+  ['prescriptions', 'prescrição', 'prescrições'],
+  ['assessments', 'ficha de avaliação', 'fichas de avaliação'],
+  ['photos', 'foto', 'fotos'],
+  ['patientPackages', 'pacote contratado', 'pacotes contratados'],
+  ['issuedCoupons', 'cupom emitido', 'cupons emitidos'],
+  ['financialEntries', 'lançamento financeiro', 'lançamentos financeiros'],
+]
+
 export function MedicalRecordPage() {
   const { patientId = '' } = useParams()
   const services = useServices()
@@ -73,8 +85,38 @@ export function MedicalRecordPage() {
   }
 
   const remove = async () => {
-    const ok = await confirm({ title: 'Excluir paciente', message: `Excluir definitivamente o cadastro de ${patient.name}? Só é possível quando não há histórico clínico ou financeiro. Uma cópia fica em Registros.`, confirmLabel: 'Excluir' })
-    if (ok && (await action('patient.remove', () => services.patients.remove(patient.id), { success: 'Cadastro excluído.' })).ok) navigate('/admin/pacientes')
+    const history = await services.patients.history(patient.id)
+    const items = HISTORY_LABELS.flatMap(([key, one, many]) => (history[key] ? [`${history[key]} ${history[key] === 1 ? one : many}`] : []))
+    const withHistory = items.length > 0
+    const ok = await confirm(
+      withHistory
+        ? {
+            title: 'Excluir paciente e todo o histórico',
+            message: (
+              <>
+                <p>
+                  Será excluído definitivamente o cadastro de <strong className="text-ink">{patient.name}</strong> junto com todo o histórico:
+                </p>
+                <ul className="mt-2 list-disc space-y-0.5 pl-5 text-ink">
+                  {items.map((item) => <li key={item}>{item}</li>)}
+                </ul>
+                <p className="mt-3">
+                  {history.financialEntries > 0 && 'Os lançamentos saem do Financeiro, inclusive os já pagos. '}
+                  Uma cópia de cada registro fica em Registros, mas a exclusão não pode ser desfeita sem um backup.
+                  Para só esconder a paciente e manter o prontuário, use <strong className="text-ink">Arquivar</strong>.
+                </p>
+              </>
+            ),
+            confirmLabel: 'Excluir tudo',
+            typeToConfirm: 'EXCLUIR',
+          }
+        : { title: 'Excluir paciente', message: `Excluir definitivamente o cadastro de ${patient.name}? Uma cópia fica em Registros.`, confirmLabel: 'Excluir' },
+    )
+    if (!ok) return
+    const result = await action('patient.remove', () => services.patients.remove(patient.id, { withHistory }), {
+      success: withHistory ? 'Paciente e todo o histórico excluídos.' : 'Cadastro excluído.',
+    })
+    if (result.ok) navigate('/admin/pacientes')
   }
 
   return (

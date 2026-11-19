@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { at, seedBasics, setup } from './setup'
+import { at, imageFile, seedBasics, setup } from './setup'
 
 describe('Pacientes', () => {
   it('cadastra, busca sem acento e ignora arquivadas por padrão', async () => {
@@ -31,6 +31,40 @@ describe('Pacientes', () => {
       procedures: [{ procedureId: limpeza.id, price: 18000 }],
     })
     await expect(services.patients.remove(maria.id)).rejects.toThrow('histórico clínico')
+  })
+
+  it('exclui a paciente junto com todo o histórico, sem tocar no das outras', async () => {
+    const { services } = setup('2026-10-10T11:00')
+    await services.backup.loadDemoData()
+    // A paciente com mais registros ligados a ela (atendimentos, pacote, cupons, lançamentos).
+    const candidates = await Promise.all(
+      (await services.patients.list()).map(async (p) => ({ patient: p, history: await services.patients.history(p.id) })),
+    )
+    const total = (h: (typeof candidates)[number]['history']) => Object.values(h).reduce((a, b) => a + b, 0)
+    const { patient } = candidates.sort((a, b) => total(b.history) - total(a.history))[0]
+    await services.photos.add({ patientId: patient.id, takenAt: '2026-10-10', file: imageFile() })
+    const history = await services.patients.history(patient.id)
+    expect(history.consultations).toBeGreaterThan(0)
+    expect(history.financialEntries).toBeGreaterThan(0)
+    expect(history.photos).toBe(1)
+    const before = await services.backup.stats()
+
+    await services.patients.remove(patient.id, { withHistory: true })
+
+    const after = await services.backup.stats()
+    expect(before.patients - after.patients).toBe(1)
+    expect(before.appointments - after.appointments).toBe(history.appointments)
+    expect(before.consultations - after.consultations).toBe(history.consultations)
+    expect(before.prescriptions - after.prescriptions).toBe(history.prescriptions)
+    expect(before.assessments - after.assessments).toBe(history.assessments)
+    expect(before.photos - after.photos).toBe(1)
+    expect(before.files - after.files).toBe(2)
+    expect(before.patientPackages - after.patientPackages).toBe(history.patientPackages)
+    expect(before.issuedCoupons - after.issuedCoupons).toBe(history.issuedCoupons)
+    expect(before.financialEntries - after.financialEntries).toBe(history.financialEntries)
+    await expect(services.patients.get(patient.id)).rejects.toThrow('Paciente')
+    const activity = await services.activity.query({ limit: 500 })
+    expect(activity.some((a) => a.action === 'delete' && a.entityId === patient.id)).toBe(true)
   })
 
   it('exclui paciente sem histórico junto com seus agendamentos', async () => {
