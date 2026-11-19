@@ -1,7 +1,17 @@
 import { describe, expect, it } from 'vitest'
+import type { Answers, Gender, Questionnaire } from '@/domain'
+import { ANAMNESIS, NUTRITION } from '@/domain'
 import { CASE_STUDIES } from '../caseStudyData'
 import { isCaseStudyPatient } from '../services/caseStudies'
 import { setup } from './setup'
+
+/** Perguntas sem resposta, considerando só as seções que valem para o gênero da paciente. */
+const unanswered = (questionnaire: Questionnaire, answers: Answers | undefined, gender: Gender) =>
+  questionnaire.sections
+    .filter((s) => s.audience !== 'female' || gender === 'female')
+    .flatMap((s) => s.questions)
+    .filter((q) => q.type !== 'computed' && answers?.[q.id] === undefined)
+    .map((q) => q.id)
 
 describe('Estudo de caso', () => {
   it('cria duas pacientes de teste por disfunção, com anamnese e ficha completas', async () => {
@@ -55,11 +65,40 @@ describe('Estudo de caso', () => {
     expect(await services.patients.list({ caseStudiesOnly: true, search: 'lucas' })).toHaveLength(1)
   })
 
+  it('as fichas de Anamnese e Nutricional das pacientes de teste ficam completas', async () => {
+    const { services } = setup('2026-11-18T10:00')
+    await services.caseStudies.createTestCases()
+    const patients = (await services.patients.list()).filter(isCaseStudyPatient)
+    expect(patients).toHaveLength(6)
+    for (const patient of patients) {
+      const definition = CASE_STUDIES.flatMap((s) => s.cases).find((c) => c.patient.name === patient.name)!
+      expect(unanswered(ANAMNESIS, patient.anamnesis, patient.gender)).toEqual([])
+      expect(unanswered(NUTRITION, patient.nutrition, patient.gender)).toEqual([])
+      expect(patient.nutrition).toEqual(definition.nutrition)
+    }
+  })
+
+  it('completa as fichas de pacientes de teste já criadas sem perder o que foi editado', async () => {
+    const { services } = setup('2026-11-18T10:00')
+    await services.caseStudies.createTestCases()
+    const [camila] = (await services.patients.list({ search: 'Camila Duarte' }))
+    await services.patients.updateNutrition(camila.id, {})
+    await services.patients.updateAnamnesis(camila.id, { complaint: 'Queixa editada pela profissional' })
+
+    const { created, completed } = await services.caseStudies.createTestCases()
+
+    expect({ created, completed }).toEqual({ created: 0, completed: 1 })
+    const after = await services.patients.get(camila.id)
+    expect(after.anamnesis.complaint).toBe('Queixa editada pela profissional')
+    expect(unanswered(ANAMNESIS, after.anamnesis, after.gender)).toEqual([])
+    expect(unanswered(NUTRITION, after.nutrition, after.gender)).toEqual([])
+  })
+
   it('reaproveita as pacientes de teste em vez de duplicá-las', async () => {
     const { services } = setup('2026-11-18T10:00')
     const first = await services.caseStudies.createTestCases()
     const second = await services.caseStudies.createTestCases()
-    expect(second).toEqual({ pairs: first.pairs, created: 0 })
+    expect(second).toEqual({ pairs: first.pairs, created: 0, completed: 0 })
     expect(await services.patients.list()).toHaveLength(6)
   })
 

@@ -1,4 +1,4 @@
-import type { AnswerComparison, Assessment, AssessmentTemplateId, Id, Patient, Questionnaire } from '@/domain'
+import type { AnswerComparison, Answers, Assessment, AssessmentTemplateId, Id, Patient, Questionnaire } from '@/domain'
 import { ANAMNESIS, ASSESSMENT_TEMPLATES, compareAnswers, DomainError, pickQuestions } from '@/domain'
 import { toLocalISODate } from '../dates'
 import type { AssessmentService } from './assessments'
@@ -64,24 +64,34 @@ function studyTitle(cases: CaseStudyCase[], fallback: string) {
 export function createCaseStudyService({ clock }: ServiceDeps, { patients, assessments }: { patients: PatientService; assessments: AssessmentService }) {
   return {
     /**
-     * Cadastra as pacientes de teste dos estudos de caso que ainda não existem, com anamnese e Ficha de
-     * avaliação preenchidas, sem tocar nas demais pacientes. Devolve os pares de fichas a comparar e
-     * quantas pacientes foram criadas agora.
+     * Cadastra as pacientes de teste dos estudos de caso que ainda não existem, com Anamnese, ficha
+     * Nutricional e Ficha de avaliação completas, sem tocar nas demais pacientes. Nas pacientes de teste
+     * que já existem, só preenche as perguntas em branco (o que foi editado é mantido).
+     * Devolve os pares de fichas a comparar, quantas pacientes foram criadas e quantas foram completadas.
      */
-    async createTestCases(): Promise<{ pairs: Array<[Id, Id]>; created: number }> {
+    async createTestCases(): Promise<{ pairs: Array<[Id, Id]>; created: number; completed: number }> {
       const { CASE_STUDIES } = await import('../caseStudyData')
       const today = toLocalISODate(clock.now())
       const existing = await patients.list({ includeInactive: true })
       const pairs: Array<[Id, Id]> = []
       let created = 0
+      let completed = 0
+      const missing = (current: Answers | undefined, expected: Answers) => Object.keys(expected).some((key) => current?.[key] === undefined)
       for (const study of CASE_STUDIES) {
         const ids: Id[] = []
         for (const definition of study.cases) {
           let patient = existing.find((p) => p.notes === caseStudyNote(definition.key))
+          const anamnesis = { ...definition.anamnesis, declarationDate: today }
           if (!patient) {
             patient = await patients.create({ ...definition.patient, notes: caseStudyNote(definition.key) })
-            await patients.updateAnamnesis(patient.id, { ...definition.anamnesis, declarationDate: today })
+            await patients.updateAnamnesis(patient.id, anamnesis)
+            await patients.updateNutrition(patient.id, definition.nutrition)
             created++
+          } else if (missing(patient.anamnesis, anamnesis) || missing(patient.nutrition, definition.nutrition)) {
+            // Respostas já gravadas vencem: só as perguntas em branco recebem as do caso.
+            await patients.updateAnamnesis(patient.id, { ...anamnesis, ...patient.anamnesis })
+            await patients.updateNutrition(patient.id, { ...definition.nutrition, ...patient.nutrition })
+            completed++
           }
           const [latest] = (await assessments.listByPatient(patient.id)).filter((a) => a.template === study.template)
           const assessment = latest ?? (await assessments.create({ patientId: patient.id, template: study.template, date: today, answers: definition.assessment }))
@@ -89,7 +99,7 @@ export function createCaseStudyService({ clock }: ServiceDeps, { patients, asses
         }
         pairs.push([ids[0], ids[1]])
       }
-      return { pairs, created }
+      return { pairs, created, completed }
     },
 
     /** Relatório comparativo de pares de Fichas de avaliação do mesmo modelo, de pacientes diferentes. */
