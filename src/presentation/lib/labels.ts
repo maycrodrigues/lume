@@ -1,3 +1,4 @@
+import type { CaseStudyType } from '@/application'
 import type {
   ActivityCategory,
   AppointmentStatus,
@@ -189,4 +190,13 @@ export const FIELD_LABELS: Record<string, string> = {
   reason: 'Motivo',
   'workingHours.days': 'Horário de atendimento',
   'workingHours.intervalMinutes': 'Intervalo entre pacientes (min)',
+}
+
+/** Cor da tag de cada tipo de estudo de caso na lista de pacientes. */
+export const CASE_STUDY_TONE: Record<CaseStudyType, Tone> = {
+  melasma: 'lilac',
+  lipodistrofia: 'success',
+  'queda-capilar': 'neutral',
+  acne: 'warning',
+  'flacidez-facial': 'info',
 }

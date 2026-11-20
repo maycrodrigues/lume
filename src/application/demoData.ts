@@ -584,7 +584,7 @@ export function buildDemoSnapshot(now: Date, newId: IdGenerator): Partial<Snapsh
   })
 
   // ── Estudos de caso ─────────────────────────────────────────────────────
-  // Pares de pacientes com a mesma disfunção (melasma, lipodistrofia, queda capilar masculina), com
+  // Pares de pacientes com a mesma disfunção (melasma, lipodistrofia, queda capilar masculina, acne, flacidez facial), com
   // anamnese e Ficha de avaliação completas. O botão "Estudo de caso" encontra estas pacientes pela marca no cadastro.
   CASE_STUDIES.forEach((study, s) =>
     study.cases.forEach((definition, c) => {
