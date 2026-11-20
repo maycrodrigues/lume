@@ -10,6 +10,24 @@ export const CASE_STUDY_NOTE = 'Paciente de teste — estudo de caso'
 export const caseStudyNote = (key: string) => `${CASE_STUDY_NOTE} (${key}).`
 export const isCaseStudyPatient = (patient: Pick<Patient, 'notes'>) => Boolean(patient.notes?.startsWith(CASE_STUDY_NOTE))
 
+/** Tipos de estudo de caso: cada um é uma tag no cadastro e um filtro na lista de pacientes. */
+export const CASE_STUDY_TYPES = [
+  { id: 'melasma', label: 'Melasma' },
+  { id: 'lipodistrofia', label: 'Lipodistrofia' },
+  { id: 'queda-capilar', label: 'Queda capilar' },
+  { id: 'acne', label: 'Acne' },
+  { id: 'flacidez-facial', label: 'Flacidez facial' },
+] as const
+
+export type CaseStudyType = (typeof CASE_STUDY_TYPES)[number]['id']
+
+/** Tipo do estudo pela chave do caso na marca do cadastro (`acne-a` → `acne`). */
+export function caseStudyType(patient: Pick<Patient, 'notes'>): CaseStudyType | undefined {
+  if (!isCaseStudyPatient(patient)) return undefined
+  const key = patient.notes?.match(/\(([^)]+)\)\.$/)?.[1]
+  return CASE_STUDY_TYPES.find((type) => key?.startsWith(`${type.id}-`))?.id
+}
+
 const ANAMNESIS_BY_TEMPLATE: Partial<Record<AssessmentTemplateId, string[]>> = {
   facial: [
     'complaint', 'complaintDuration', 'cosmetics', 'sunExposure', 'sunscreen', 'physicalActivity', 'waterIntake', 'medications',
@@ -67,9 +85,10 @@ export function createCaseStudyService({ clock }: ServiceDeps, { patients, asses
      * Cadastra as pacientes de teste dos estudos de caso que ainda não existem, com Anamnese, ficha
      * Nutricional e Ficha de avaliação completas, sem tocar nas demais pacientes. Nas pacientes de teste
      * que já existem, só preenche as perguntas em branco (o que foi editado é mantido).
+     * Com `type`, cuida só dos casos daquele tipo de estudo.
      * Devolve os pares de fichas a comparar, quantas pacientes foram criadas e quantas foram completadas.
      */
-    async createTestCases(): Promise<{ pairs: Array<[Id, Id]>; created: number; completed: number }> {
+    async createTestCases(type?: CaseStudyType): Promise<{ pairs: Array<[Id, Id]>; created: number; completed: number }> {
       const { CASE_STUDIES } = await import('../caseStudyData')
       const today = toLocalISODate(clock.now())
       const existing = await patients.list({ includeInactive: true })
@@ -77,7 +96,7 @@ export function createCaseStudyService({ clock }: ServiceDeps, { patients, asses
       let created = 0
       let completed = 0
       const missing = (current: Answers | undefined, expected: Answers) => Object.keys(expected).some((key) => current?.[key] === undefined)
-      for (const study of CASE_STUDIES) {
+      for (const study of CASE_STUDIES.filter((s) => !type || s.id === type)) {
         const ids: Id[] = []
         for (const definition of study.cases) {
           let patient = existing.find((p) => p.notes === caseStudyNote(definition.key))

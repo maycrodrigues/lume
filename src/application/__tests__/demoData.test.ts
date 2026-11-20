@@ -84,7 +84,7 @@ describe('Dados de demonstração', () => {
     const before = (await services.patients.list()).length
     const reports = await services.caseStudies.report((await services.caseStudies.createTestCases()).pairs)
     expect(await services.patients.list()).toHaveLength(before)
-    expect(reports.map((r) => r.title)).toEqual(['Hiperpigmentação facial', 'Lipodistrofia localizada', 'Queda capilar masculina'])
+    expect(reports.map((r) => r.title)).toEqual(['Hiperpigmentação facial', 'Lipodistrofia localizada', 'Queda capilar masculina', 'Acne vulgar', 'Flacidez facial pós-emagrecimento'])
   })
 
   it('sessões de pacote e cupons usados batem com os contratos e cupons emitidos', () => {
